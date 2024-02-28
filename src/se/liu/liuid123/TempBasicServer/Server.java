@@ -1,4 +1,4 @@
-package se.liu.liuid123;
+package se.liu.liuid123.TempBasicServer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,7 +8,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class Client
+public class Server
 {
     public static void main(String[] args) {
 	final ServerSocket serverSocket;
@@ -37,11 +37,25 @@ public class Client
 
 	    Thread recieve = new Thread(new Runnable()
 	    {
-		String msg = in.readLine();
+		String msg;
 		@Override public void run() {
-
+		    try{
+			msg = in.readLine();
+			while (msg!=null){
+			    System.out.println("Client : " + msg);
+			    msg = in.readLine();
+			}
+			System.out.println("Client disconeted");
+			out.close();
+			clientSocket.close();
+			serverSocket.close();
+		    }
+		    catch (IOException e){
+			e.printStackTrace();
+		    }
 		}
 	    });
+	    recieve.start();
 
 	}catch (IOException io){
 	    io.printStackTrace();
