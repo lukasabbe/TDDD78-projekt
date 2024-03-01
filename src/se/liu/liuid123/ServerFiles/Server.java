@@ -1,5 +1,6 @@
 package se.liu.liuid123.ServerFiles;
 
+import se.liu.liuid123.Both.MessageData;
 import se.liu.liuid123.Both.UserInfo;
 
 import javax.imageio.IIOException;
@@ -58,8 +59,9 @@ public class Server
 		    InputStream inputStream = client.getInputStream();
 		    BufferedReader clientIn = new BufferedReader(new InputStreamReader(inputStream));
 		    ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+		    ObjectOutputStream objectOutputStream = new ObjectOutputStream(client.getOutputStream());
 		    UserInfo userInfo = (UserInfo) objectInputStream.readObject();
-		    ClientData clientData = new ClientData(client, clientOut, clientIn, userInfo);
+		    ClientData clientData = new ClientData(client,objectOutputStream, objectInputStream, userInfo);
 		    connectedClientData.add(clientData);
 		    Thread clientThread = new Thread(new Reciever(clientData));
 		    clientThread.start();
@@ -79,15 +81,13 @@ public class Server
 	}
 	@Override public void run() {
 	    try {
-		String msg = "";
 		while (true){
-		    msg = clientData.in.readLine();
+		    MessageData msg = (MessageData) clientData.objectInputStream.readObject();
 		    for (ClientData connectedClient : connectedClientData) {
-			connectedClient.out.println(clientData.userInfo.getUserName()+" : "+msg);
-			connectedClient.out.flush();
+			connectedClient.objectOutputStream.writeObject(new MessageData(msg.getMessage(),msg.getUserInfo()));
 		    }
 		}
-	    } catch (IOException e) {
+	    } catch (IOException | ClassNotFoundException e) {
 		e.printStackTrace();
 	    }
 	}

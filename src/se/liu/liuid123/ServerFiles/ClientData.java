@@ -11,10 +11,10 @@ import java.net.Socket;
 public class ClientData
 {
     public Socket socket;
-    public PrintWriter out;
-    public BufferedReader in;
-    public ObjectOutputStream objectOutputStream;
-    public ObjectInputStream objectInputStream;
+    public PrintWriter out = null;
+    public BufferedReader in = null;
+    public ObjectOutputStream objectOutputStream = null;
+    public ObjectInputStream objectInputStream = null;
     public UserInfo userInfo;
 
     public ClientData(final Socket socket, final PrintWriter out, final BufferedReader in, final UserInfo userInfo) {
