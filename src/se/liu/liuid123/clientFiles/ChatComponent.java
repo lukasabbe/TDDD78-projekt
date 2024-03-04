@@ -1,28 +1,24 @@
-package se.liu.liuid123.ClientFiles;
+package se.liu.liuid123.clientFiles;
 
-import se.liu.liuid123.Both.MessageData;
+import se.liu.liuid123.both.MessageData;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
 public class ChatComponent extends JPanel implements ChatChangeListener
 {
     private Client client;
-    private JScrollPane chatScrool = null;
     private JTextArea textArea = null;
     private JTextField sendChat = null;
     private JButton sendButton = null;
     public ChatComponent(Client client){
 	this.client = client;
-	chatScrool = new JScrollPane();
 	textArea = new JTextArea();
 	textArea.setEditable(false);
 	sendChat = new JTextField("Write your message here");
 	sendButton = new JButton("Send message");
-	//chatScrool.add(textArea);
 	setLayout(new BorderLayout());
 	JPanel inputTextPanel = new JPanel();
 	add(textArea, BorderLayout.NORTH);

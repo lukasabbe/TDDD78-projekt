@@ -1,6 +1,6 @@
-package se.liu.liuid123.ServerFiles;
+package se.liu.liuid123.serverFiles;
 
-import se.liu.liuid123.Both.UserInfo;
+import se.liu.liuid123.both.UserInfo;
 
 import java.io.BufferedReader;
 import java.io.ObjectInputStream;

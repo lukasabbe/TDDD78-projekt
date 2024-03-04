@@ -1,4 +1,4 @@
-package se.liu.liuid123.ClientFiles;
+package se.liu.liuid123.clientFiles;
 
 public interface ChatChangeListener
 {

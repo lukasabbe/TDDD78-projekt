@@ -1,7 +1,8 @@
-package se.liu.liuid123.ClientFiles;
+package se.liu.liuid123.clientFiles;
 
-import se.liu.liuid123.Both.MessageData;
-import se.liu.liuid123.Both.UserInfo;
+import se.liu.liuid123.both.MessageData;
+import se.liu.liuid123.both.RequestMessagesData;
+import se.liu.liuid123.both.UserInfo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,7 +12,6 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,9 +48,14 @@ public class Client
     public void startClient(){
 	try {
 	    objectOutputStream.writeObject(userInfo);
+	    objectOutputStream.writeObject(new RequestMessagesData(0,10));
+	    MessageData[] oldMessages = (MessageData[])objectInputStream.readObject();
+	    if(oldMessages != null){
+		messages.addAll(List.of(oldMessages));
+	    }
 	    Thread reciver = new Thread(new Recevier());
 	    reciver.start();
-	} catch (IOException e) {
+	} catch (IOException | ClassNotFoundException e) {
 	    e.printStackTrace();
 	}
     }

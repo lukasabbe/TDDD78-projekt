@@ -1,4 +1,4 @@
-package se.liu.liuid123.TempBasicServer;
+package se.liu.liuid123.tempBasicServer;
 
 import java.io.BufferedReader;
 import java.io.IOException;

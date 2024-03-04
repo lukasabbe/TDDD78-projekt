@@ -1,6 +1,6 @@
 package se.liu.liuid123;
 
-import se.liu.liuid123.ClientFiles.Gui;
+import se.liu.liuid123.clientFiles.Gui;
 
 public class TestChatClient
 {

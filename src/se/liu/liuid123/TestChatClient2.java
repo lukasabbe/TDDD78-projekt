@@ -1,9 +1,6 @@
 package se.liu.liuid123;
 
-import se.liu.liuid123.ClientFiles.Client;
-import se.liu.liuid123.ClientFiles.Gui;
-
-import java.util.Scanner;
+import se.liu.liuid123.clientFiles.Gui;
 
 public class TestChatClient2
 {

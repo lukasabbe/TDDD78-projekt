@@ -1,4 +1,4 @@
-package se.liu.liuid123.ClientFiles;
+package se.liu.liuid123.clientFiles;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,8 +15,6 @@ public class Gui
     }
     public void open(){
 	connectToServer();
-	frame.pack();
-	frame.setVisible(true);
 	ChatComponent chatComponent = new ChatComponent(client);
 	client.addChatChangeListner(chatComponent);
 	frame.setLayout(new BorderLayout());

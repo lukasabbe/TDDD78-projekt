@@ -1,9 +1,10 @@
-package se.liu.liuid123.ServerFiles;
+package se.liu.liuid123.serverFiles;
 
-import se.liu.liuid123.Both.MessageData;
-import se.liu.liuid123.Both.UserInfo;
+import se.liu.liuid123.both.ChannelData;
+import se.liu.liuid123.both.MessageData;
+import se.liu.liuid123.both.RequestMessagesData;
+import se.liu.liuid123.both.UserInfo;
 
-import javax.imageio.IIOException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,21 +20,33 @@ import java.util.List;
 public class Server
 {
     private ServerSocket serverSocket = null;
+    private List<ChannelData> channels = new ArrayList<>();
+    private int currentChannelId = 0;
     private List<ClientData> connectedClientData = new ArrayList<>();
 
     private List<Thread> clientThreads = new ArrayList<>();
 
     private Thread serverThreed = null;
+    private final int MAIN_CHANNEL = 0;
 
     public Server (int port){
 	try{
 	    this.serverSocket = new ServerSocket(port);
+	    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+		try {
+		    serverSocket.close();
+		    serverThreed.interrupt();
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}
+	    }));
 	}catch (IOException e){
 	    e.printStackTrace();
 	}
     }
 
     public void startServer(){
+	channels.add( new ChannelData(createChannelId()));
 	serverThreed = new Thread(new Connector());
 	serverThreed.start();
 	System.out.println("Server truned on!");
@@ -61,6 +74,7 @@ public class Server
 		    ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
 		    ObjectOutputStream objectOutputStream = new ObjectOutputStream(client.getOutputStream());
 		    UserInfo userInfo = (UserInfo) objectInputStream.readObject();
+		    userInfo.setCurrentChannel(MAIN_CHANNEL);
 		    ClientData clientData = new ClientData(client,objectOutputStream, objectInputStream, userInfo);
 		    connectedClientData.add(clientData);
 		    Thread clientThread = new Thread(new Reciever(clientData));
@@ -76,15 +90,25 @@ public class Server
 
     private class Reciever implements Runnable {
 	ClientData clientData;
-	private Reciever(ClientData clientData){
+	private Reciever(ClientData clientData) throws IOException {
 	    this.clientData = clientData;
 	}
 	@Override public void run() {
 	    try {
 		while (true){
-		    MessageData msg = (MessageData) clientData.objectInputStream.readObject();
-		    for (ClientData connectedClient : connectedClientData) {
-			connectedClient.objectOutputStream.writeObject(new MessageData(msg.getMessage(),msg.getUserInfo()));
+		    Object userRequest = clientData.objectInputStream.readObject();
+		    if(userRequest instanceof MessageData){
+			MessageData msg = (MessageData) userRequest;
+			channels.get(clientData.userInfo.getCurrentChannel()).addMessage(msg);
+			for (ClientData connectedClient : connectedClientData) {
+			    connectedClient.objectOutputStream.writeObject(new MessageData(msg.getMessage(),msg.getUserInfo()));
+			}
+		    }else if(userRequest instanceof RequestMessagesData){
+			RequestMessagesData requestMessagesData = (RequestMessagesData) userRequest;
+			clientData.objectOutputStream.writeObject(
+				channels.get(clientData.userInfo.getCurrentChannel())
+					.getMessage(requestMessagesData)
+			);
 		    }
 		}
 	    } catch (IOException | ClassNotFoundException e) {
@@ -93,6 +117,10 @@ public class Server
 	}
     }
 
+    public int createChannelId() {
+	currentChannelId++;
+	return currentChannelId-1;
+    }
 }
 
 
