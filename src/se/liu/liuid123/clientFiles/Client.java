@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Client
@@ -50,6 +51,7 @@ public class Client
 	    objectOutputStream.writeObject(userInfo);
 	    objectOutputStream.writeObject(new RequestMessagesData(0,10));
 	    MessageData[] oldMessages = (MessageData[])objectInputStream.readObject();
+	    System.out.println(Arrays.toString(oldMessages));
 	    if(oldMessages != null){
 		messages.addAll(List.of(oldMessages));
 	    }

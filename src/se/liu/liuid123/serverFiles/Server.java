@@ -5,13 +5,10 @@ import se.liu.liuid123.both.MessageData;
 import se.liu.liuid123.both.RequestMessagesData;
 import se.liu.liuid123.both.UserInfo;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -68,9 +65,7 @@ public class Server
 		try {
 		    Socket client = serverSocket.accept();
 		    System.out.println("New client connected");
-		    PrintWriter clientOut = new PrintWriter(client.getOutputStream());
 		    InputStream inputStream = client.getInputStream();
-		    BufferedReader clientIn = new BufferedReader(new InputStreamReader(inputStream));
 		    ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
 		    ObjectOutputStream objectOutputStream = new ObjectOutputStream(client.getOutputStream());
 		    UserInfo userInfo = (UserInfo) objectInputStream.readObject();
@@ -96,6 +91,7 @@ public class Server
 	@Override public void run() {
 	    try {
 		while (true){
+		    if(clientData.socket.isClosed()) disconectClient(clientData);
 		    Object userRequest = clientData.objectInputStream.readObject();
 		    if(userRequest instanceof MessageData){
 			MessageData msg = (MessageData) userRequest;
@@ -111,9 +107,27 @@ public class Server
 			);
 		    }
 		}
-	    } catch (IOException | ClassNotFoundException e) {
+	    } catch (IOException ignored) {
+		disconectClient(clientData);
+	    }catch (ClassNotFoundException e){
 		e.printStackTrace();
 	    }
+	}
+    }
+
+    public void disconectClient(ClientData clientData){
+	try {
+	    clientData.socket.close();
+	    clientData.objectOutputStream.close();
+	    clientData.objectInputStream.close();
+	    int index = connectedClientData.indexOf(clientData);
+	    connectedClientData.remove(index);
+	    clientThreads.get(index).interrupt();
+	    clientThreads.remove(index);
+	    System.out.println("Client disconected");
+	} catch (IOException e) {
+	    e.printStackTrace();
+	    System.out.println("Problem happend when client disconected");
 	}
     }
 

@@ -16,6 +16,7 @@ public class Gui
     public void open(){
 	connectToServer();
 	ChatComponent chatComponent = new ChatComponent(client);
+	frame.getRootPane().setDefaultButton(chatComponent.getSendButton());
 	client.addChatChangeListner(chatComponent);
 	frame.setLayout(new BorderLayout());
 	frame.add(chatComponent,BorderLayout.CENTER);

@@ -34,15 +34,17 @@ public class ChannelData implements Serializable
 	    amount = this.messages.size() - pointer;
 	}
 	MessageData[] messages = new MessageData[amount];
-	for(int i = pointer; i < amount+pointer; i++){
-	    messages[i-pointer] = this.messages.get(i);
+	int amountCounter = 0;
+	for(int i = this.messages.size()-pointer; i >= this.messages.size()-(amount+pointer); i--){
+	    messages[amountCounter] = this.messages.get(i);
+	    amountCounter++;
 	}
 	return messages;
+
     }
     public MessageData[] getMessage(RequestMessagesData requestMessagesData){
 	int pointer = requestMessagesData.getPointer();
 	int amount = requestMessagesData.getAmount();
-	List<MessageData> reversedList = messages.reversed();
 	if(this.messages.isEmpty()){
 	    return null;
 	}
@@ -56,8 +58,11 @@ public class ChannelData implements Serializable
 	    amount = this.messages.size() - pointer;
 	}
 	MessageData[] messages = new MessageData[amount];
-	for(int i = pointer; i < amount+pointer; i++){
-	    messages[i-pointer] = reversedList.get(i);
+	int amountCounter = amount-1;
+	for(int i = this.messages.size()-pointer-1; i >= this.messages.size()-(amount+pointer); i--){
+	    System.out.println(i);
+	    messages[amountCounter] = this.messages.get(i);
+	    amountCounter--;
 	}
 	return messages;
     }

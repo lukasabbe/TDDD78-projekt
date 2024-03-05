@@ -37,6 +37,7 @@ public class ChatComponent extends JPanel implements ChatChangeListener
 		    sendChat.setText("Write your message here");
 	    }
 	});
+	sendButton.setDefaultCapable(true);
 	sendButton.addActionListener(event ->{
 	    client.sendMessage(sendChat.getText());
 	    sendChat.setText("");
@@ -70,5 +71,9 @@ public class ChatComponent extends JPanel implements ChatChangeListener
     @Override
     public void chatChange() {
 	repaint();
+    }
+
+    public JButton getSendButton(){
+	return sendButton;
     }
 }
