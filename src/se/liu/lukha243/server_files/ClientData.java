@@ -1,6 +1,6 @@
-package se.liu.liuid123.serverFiles;
+package se.liu.lukha243.server_files;
 
-import se.liu.liuid123.both.UserInfo;
+import se.liu.lukha243.both.UserInfo;
 
 import java.io.BufferedReader;
 import java.io.ObjectInputStream;

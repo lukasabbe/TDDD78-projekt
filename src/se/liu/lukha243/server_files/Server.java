@@ -1,9 +1,9 @@
-package se.liu.liuid123.serverFiles;
+package se.liu.lukha243.server_files;
 
-import se.liu.liuid123.both.ChannelData;
-import se.liu.liuid123.both.MessageData;
-import se.liu.liuid123.both.RequestMessagesData;
-import se.liu.liuid123.both.UserInfo;
+import se.liu.lukha243.both.ChannelData;
+import se.liu.lukha243.both.MessageData;
+import se.liu.lukha243.both.RequestMessagesData;
+import se.liu.lukha243.both.UserInfo;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-package se.liu.liuid123.both;
+package se.liu.lukha243.both;
 
 import java.io.Serializable;
 
