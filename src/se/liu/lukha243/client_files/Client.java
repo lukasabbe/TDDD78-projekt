@@ -1,8 +1,9 @@
 package se.liu.lukha243.client_files;
 
-import se.liu.lukha243.both.DisconnectRequest;
+import se.liu.lukha243.both.Request;
 import se.liu.lukha243.both.MessageData;
 import se.liu.lukha243.both.RequestMessagesData;
+import se.liu.lukha243.both.RequestType;
 import se.liu.lukha243.both.UserInfo;
 
 import java.io.IOException;
@@ -63,15 +64,14 @@ public class Client
     public void startClient(){
 	try {
 	    objectOutputStream.writeObject(userInfo);
-	    objectOutputStream.writeObject(new RequestMessagesData(0,10));
-	    MessageData[] oldMessages = (MessageData[])objectInputStream.readObject();
+	    MessageData[] oldMessages = getMessagesFromServer(0,20);
 	    System.out.println(Arrays.toString(oldMessages));
 	    if(oldMessages != null){
 		messages.addAll(List.of(oldMessages));
 	    }
 	    Thread receiver = new Thread(new Receiver());
 	    receiver.start();
-	} catch (IOException | ClassNotFoundException e) {
+	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
 	    LOGGER.log(Level.INFO, "Turning of client socket");
 	    closeClient();
@@ -84,7 +84,7 @@ public class Client
      */
     public void closeClient(){
 	try {
-	    objectOutputStream.writeObject(new DisconnectRequest());
+	    objectOutputStream.writeObject(new Request(RequestType.DISCONNECT_REQUEST));
 	    objectInputStream.close();
 	    objectOutputStream.close();
 	    serverSocket.close();
@@ -106,6 +106,48 @@ public class Client
 	    LOGGER.log(Level.INFO, "Turning of client socket");
 	    closeClient();
 	}
+    }
+
+    public void createChannel(){
+	try{
+	    objectOutputStream.writeObject(new Request(RequestType.CREATE_NEW_CHANNEL));
+	    userInfo = (UserInfo)objectInputStream.readObject();
+	    MessageData[] channelMessages = getMessagesFromServer(0, 20);
+	    messages.clear();
+	    if(channelMessages != null)
+	    	messages.addAll(List.of(channelMessages));
+	    notifyAllListeners();
+	}catch (IOException | ClassNotFoundException e){
+	    if(isClosed) return;
+	    LOGGER.log(Level.SEVERE, e.toString(), e);
+	    LOGGER.log(Level.INFO, "Turning of client");
+	    closeClient();
+	}
+    }
+
+    public void joinChannel(){
+
+    }
+
+    /**
+     * Gets the channels messages.
+     * @param pointer from where to look in all messages
+     * @param amount the amount to load
+     * @return The messages
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public MessageData[] getMessagesFromServer(int pointer, int amount) {
+	try{
+	    objectOutputStream.writeObject(new RequestMessagesData(pointer,amount));
+	    return (MessageData[]) objectInputStream.readObject();
+	}catch (IOException | ClassNotFoundException e){
+	    if(isClosed) return null;
+	    LOGGER.log(Level.SEVERE, e.toString(), e);
+	    LOGGER.log(Level.INFO, "Turning of client");
+	    closeClient();
+	}
+	return null;
     }
 
     /**

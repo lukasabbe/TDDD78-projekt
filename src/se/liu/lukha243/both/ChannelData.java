@@ -7,9 +7,10 @@ import java.util.List;
 /**
  * The serialzable channel data. That is used to tell servern and client the data of them both
  */
-public class ChannelData implements Serializable, Packet
+public class ChannelData implements Serializable
 {
     private final int id;
+    private UserInfo client = null;
     private List<MessageData> messages = new ArrayList<>();
 
     /**
@@ -18,6 +19,11 @@ public class ChannelData implements Serializable, Packet
      */
     public ChannelData(int id) {
 	this.id = id;
+    }
+
+    public ChannelData(int id, UserInfo userInfo){
+	this.id = id;
+	this.client = userInfo;
     }
 
     /**
@@ -61,11 +67,8 @@ public class ChannelData implements Serializable, Packet
     public int getId(){
 	return id;
     }
-    /**
-     * Handler for request to server
-     * @param handler
-     */
-    @Override public void dispatchHandler(final PacketHandler handler) {
-	handler.handle(this);
+
+    public UserInfo getClient(){
+	return client;
     }
 }

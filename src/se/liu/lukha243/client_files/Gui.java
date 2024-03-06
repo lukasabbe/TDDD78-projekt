@@ -77,6 +77,10 @@ public class Gui
 	menuFileOptions.add(menuItemReconect);
 	menuFileOptions.add(menuItemQuit);
 	JMenu menuFileConnection = new JMenu("View");
+	JMenuItem menuItemJoinChannel = new JMenuItem("Join channel");
+	JMenuItem menuItemCreateChannel = new JMenuItem("Create channel");
+	menuFileConnection.add(menuItemJoinChannel);
+	menuFileConnection.add(menuItemCreateChannel);
 	menuBar.add(menuFileOptions);
 	menuBar.add(menuFileConnection);
 	return menuBar;

@@ -1,7 +1,7 @@
 package se.liu.lukha243.server_files;
 
 import se.liu.lukha243.both.ChannelData;
-import se.liu.lukha243.both.DisconnectRequest;
+import se.liu.lukha243.both.Request;
 import se.liu.lukha243.both.MessageData;
 import se.liu.lukha243.both.Packet;
 import se.liu.lukha243.both.PacketHandler;
@@ -140,10 +140,6 @@ public class Server
 	    }
 	}
 
-	@Override public void handle(final ChannelData packet) {
-	    return;
-	}
-
 	@Override public void handle(final RequestMessagesData requestMessagesData) {
 	    try{
 		clientData.objectOutputStream.writeObject(
@@ -161,17 +157,20 @@ public class Server
 	    return;
 	}
 
-	@Override public void handle(final DisconnectRequest packet) {
-
-	    disconnectClient(clientData);
+	@Override public void handle(final Request packet) {
+	    switch (packet.getRequestType()){
+		case DISCONNECT_REQUEST -> disconnectClient(clientData);
+		case CREATE_NEW_CHANNEL -> createNewChannel(clientData);
+	    }
 	}
+
     }
 
     /**
      * Disconnect the client you want
      * @param clientData the client you want to disconnect
      */
-    public void disconnectClient(ClientData clientData){
+    private void disconnectClient(ClientData clientData){
 	try {
 	    if(!clientData.isConnectionOn) return;
 	    clientData.isConnectionOn = false;
@@ -187,6 +186,21 @@ public class Server
 	    LOGGER.log(Level.WARNING, e.toString(), e);
 	    LOGGER.log(Level.INFO, "Problems happend when disconnecting user");
 	}
+    }
+
+    private void createNewChannel(ClientData clientData){
+	try {
+	    int newChannel = createChannelId();
+	    clientData.userInfo.setCurrentChannel(newChannel);
+	    channels.add(new ChannelData(newChannel, clientData.userInfo));
+	    clientData.objectOutputStream.writeObject(clientData.userInfo);
+	}catch (IOException e){
+	    if(!clientData.isConnectionOn) return;
+	    LOGGER.log(Level.WARNING, e.toString(), e);
+	    LOGGER.log(Level.INFO, "Disconnecting user");
+	    disconnectClient(clientData);
+	}
+
     }
 
     private int createChannelId() {
