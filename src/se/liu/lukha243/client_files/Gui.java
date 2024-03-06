@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 public class Gui
 {
     private static final Logger LOGGER = Logger.getLogger(Gui.class.getName());
-    private JFrame frame;
+    private JFrame frame = null;
     private Client client = null;
 
     /**

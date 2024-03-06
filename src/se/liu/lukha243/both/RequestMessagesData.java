@@ -2,33 +2,45 @@ package se.liu.lukha243.both;
 
 import java.io.Serializable;
 
+/**
+ * An request to get more messages at once. Used to load old messages
+ */
 public class RequestMessagesData implements Serializable, Packet
 {
     private int pointer;
     private int amount;
 
+    /**
+     * creates an request to the server
+     * @param pointer
+     * @param amount
+     */
     public RequestMessagesData(final int pointer, final int amount) {
 	this.pointer = pointer;
 	this.amount = amount;
     }
 
+    /**
+     * Gets the pointer
+     * @return
+     */
     public int getPointer() {
 	return pointer;
     }
 
-    public void setPointer(final int pointer) {
-	this.pointer = pointer;
-    }
-
+    /**
+     * Get the amount of messages
+     * @return
+     */
     public int getAmount() {
 	return amount;
     }
 
-    public void setAmount(final int amount) {
-	this.amount = amount;
-    }
-
-    @Override public void dispatch(final PacketHandler handler) {
+    /**
+     * Handler for request to server
+     * @param handler
+     */
+    @Override public void dispatchHandler(final PacketHandler handler) {
 	handler.handle(this);
     }
 }

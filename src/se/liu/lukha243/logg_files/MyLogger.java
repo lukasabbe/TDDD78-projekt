@@ -1,10 +1,7 @@
 package se.liu.lukha243.logg_files;
 
-import se.liu.lukha243.client_files.Client;
-
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.FileHandler;
@@ -13,7 +10,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 /**
- * A class for all setings for logging
+ * A class that is used for Initializeing the logger system
  */
 public class MyLogger
 {
@@ -23,11 +20,20 @@ public class MyLogger
      */
     public static void initLogger(){
 	try {
-	    File logsDir = new File(System.getProperty("user.home") + "/logs");
+	    File logsDir = new File(System.getProperty("user.home") + File.separator +"logs");
 	    if(!logsDir.exists()){
-		logsDir.mkdirs();
+		boolean createdDir = logsDir.mkdirs();
+		if(!createdDir)
+		    LOGGER.log(Level.WARNING, "Can't create dirs where the logs is saved ");
 	    }
-	    FileHandler fileHandler = new FileHandler("%h/logs/"+String.format("log-%s.txt", DateTimeFormatter.ofPattern("dd-MM-yyyy-hh-mm").format(LocalDateTime.now())));
+	    FileHandler fileHandler = new FileHandler(
+		    "%h"+
+		    File.separator+
+		    "logs"+
+		    File.separator+
+		    String.format(
+			    "log-%s.txt",
+			    DateTimeFormatter.ofPattern("dd-MM-yyyy-hh-mm").format(LocalDateTime.now())));
 	    SimpleFormatter formatter = new SimpleFormatter();
 	    fileHandler.setFormatter(formatter);
 	    Logger mainLogger = Logger.getLogger("");

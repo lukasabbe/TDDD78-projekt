@@ -1,7 +1,8 @@
 package se.liu.lukha243.both;
 
-import java.io.IOException;
-
+/**
+ * Its used for the packet so we can ditermen what type of packet it is
+ */
 public interface PacketHandler
 {
     public void handle(MessageData packet);

@@ -21,16 +21,19 @@ import java.util.logging.Logger;
 /*
 Saker att fråga:
 1. Var ska man skapa sin logger enl er?
+2. Vad fan snackar Similar children om
  */
 
 
 /**
- * Create a server for the chat serivice
+ * Create a server for the chat serivice.
+ * It takes cares of incoming messages and sening them to all of the users.
+ * It also takes care of alot of difrent types of requests
  */
 public class Server
 {
     private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
-    private ServerSocket serverSocket = null;
+    private ServerSocket serverSocket;
     private List<ChannelData> channels = new ArrayList<>();
     private int currentChannelId = 0;
     private List<ClientData> connectedClientData = new ArrayList<>();
@@ -109,12 +112,15 @@ public class Server
 	    try {
 		while (true){
 		    Packet userRequest = (Packet) clientData.objectInputStream.readObject();
-		    userRequest.dispatch(this);
+		    userRequest.dispatchHandler(this);
 		}
-	    } catch (IOException ignored) {
-		disconectClient(clientData);
+	    } catch (IOException e) {
+		LOGGER.log(Level.WARNING, e.toString(), e);
+		LOGGER.log(Level.INFO, "Due to IOerror we disconect the user");
+		disconnectClient(clientData);
 	    }catch (ClassNotFoundException e){
-		e.printStackTrace();
+		LOGGER.log(Level.SEVERE, e.toString(), e);
+		closeServer();
 	    }
 	}
 
@@ -127,7 +133,7 @@ public class Server
 	    }catch (IOException e){
 		LOGGER.log(Level.WARNING, e.toString(), e);
 		LOGGER.log(Level.INFO, "Turning off client due to IO error");
-		disconectClient(clientData);
+		disconnectClient(clientData);
 	    }
 	}
 
@@ -144,7 +150,7 @@ public class Server
 	    }catch (IOException e){
 		LOGGER.log(Level.WARNING, e.toString(), e);
 		LOGGER.log(Level.INFO, "Turning off client due to IO error");
-		disconectClient(clientData);
+		disconnectClient(clientData);
 	    }
 	}
 
@@ -153,7 +159,11 @@ public class Server
 	}
     }
 
-    public void disconectClient(ClientData clientData){
+    /**
+     * Disconnect the client you want
+     * @param clientData the client you want to disconnect
+     */
+    public void disconnectClient(ClientData clientData){
 	try {
 	    clientData.socket.close();
 	    clientData.objectOutputStream.close();
@@ -164,12 +174,11 @@ public class Server
 	    clientThreads.remove(index);
 	    System.out.println("Client disconected");
 	} catch (IOException e) {
-	    e.printStackTrace();
-	    System.out.println("Problem happend when client disconected");
+	    LOGGER.log(Level.WARNING, "Problems happend when disconnecting user");
 	}
     }
 
-    public int createChannelId() {
+    private int createChannelId() {
 	currentChannelId++;
 	return currentChannelId-1;
     }

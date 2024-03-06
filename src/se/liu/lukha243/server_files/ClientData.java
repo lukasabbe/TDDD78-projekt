@@ -1,13 +1,10 @@
 package se.liu.lukha243.server_files;
 
 import se.liu.lukha243.both.UserInfo;
-import se.liu.lukha243.client_files.Client;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,15 +45,5 @@ public class ClientData
 	this.objectOutputStream = objectOutputStream;
 	this.objectInputStream = objectInputStream;
 	this.userInfo = userInfo;
-    }
-
-    public void turnOffClient() {
-	try{
-	    socket.close();
-	    objectInputStream.close();
-	    objectInputStream.close();
-	}catch (IOException e){
-	    LOGGER.log(Level.SEVERE, e.toString(), e);
-	}
     }
 }
