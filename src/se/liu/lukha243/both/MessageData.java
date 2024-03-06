@@ -1,8 +1,9 @@
 package se.liu.lukha243.both;
 
 import java.io.Serializable;
+import java.util.logging.Handler;
 
-public class MessageData implements Serializable
+public class MessageData implements Serializable, Packet
 {
     private String message;
     private UserInfo userInfo;
@@ -27,5 +28,10 @@ public class MessageData implements Serializable
 
     public void setUserInfo(final UserInfo userInfo) {
 	this.userInfo = userInfo;
+    }
+
+    @Override
+    public void dispatch(final PacketHandler handler) {
+	handler.handle(this);
     }
 }

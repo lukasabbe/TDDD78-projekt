@@ -13,7 +13,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,10 +24,10 @@ public class Client
 {
     private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
 
-    private Socket serverSocket = null;
-    private UserInfo userInfo = null;
-    private ObjectOutputStream objectOutputStream = null;
-    private ObjectInputStream objectInputStream = null;
+    private Socket serverSocket;
+    private UserInfo userInfo;
+    private ObjectOutputStream objectOutputStream;
+    private ObjectInputStream objectInputStream;
     private List<MessageData> messages = new ArrayList<>();
     private List<ChatChangeListener> listeners = new ArrayList<>();
 
@@ -40,6 +39,7 @@ public class Client
      * @throws UnknownHostException
      */
     public Client(String ip, int port) throws IOException, UnknownHostException {
+	LOGGER.log(Level.INFO, "test");
 	System.out.println("test");
 	serverSocket = new Socket(ip, port);
 	OutputStream outputStream = serverSocket.getOutputStream();
@@ -72,7 +72,7 @@ public class Client
 	    receiver.start();
 	} catch (IOException | ClassNotFoundException e) {
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
-	    LOGGER.log(Level.INFO, "turning of client");
+	    LOGGER.log(Level.INFO, "Turning of client socket");
 	    closeClient();
 	}
     }
@@ -99,7 +99,7 @@ public class Client
 	    objectOutputStream.writeObject(new MessageData(message, userInfo));
 	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
-	    LOGGER.log(Level.INFO, "turning of client");
+	    LOGGER.log(Level.INFO, "Turning of client socket");
 	    closeClient();
 	}
     }

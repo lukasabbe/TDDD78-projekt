@@ -2,6 +2,8 @@ package se.liu.lukha243.server_files;
 
 import se.liu.lukha243.both.ChannelData;
 import se.liu.lukha243.both.MessageData;
+import se.liu.lukha243.both.Packet;
+import se.liu.lukha243.both.PacketHandler;
 import se.liu.lukha243.both.RequestMessagesData;
 import se.liu.lukha243.both.UserInfo;
 
@@ -13,9 +15,21 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+/*
+Saker att fråga:
+1. Var ska man skapa sin logger enl er?
+ */
+
+
+/**
+ * Create a server for the chat serivice
+ */
 public class Server
 {
+    private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
     private ServerSocket serverSocket = null;
     private List<ChannelData> channels = new ArrayList<>();
     private int currentChannelId = 0;
@@ -23,39 +37,39 @@ public class Server
 
     private List<Thread> clientThreads = new ArrayList<>();
 
-    private Thread serverThreed = null;
-    private final int MAIN_CHANNEL = 0;
+    private Thread serverThread = null;
 
-    public Server (int port){
-	try{
-	    this.serverSocket = new ServerSocket(port);
-	    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-		try {
-		    serverSocket.close();
-		    serverThreed.interrupt();
-		} catch (IOException e) {
-		    e.printStackTrace();
-		}
-	    }));
-	}catch (IOException e){
-	    e.printStackTrace();
-	}
+    /**
+     * Creates the server object
+     * @param port the port you want the server to run on
+     */
+    public Server (int port) throws IOException{
+	this.serverSocket = new ServerSocket(port);
     }
 
+    /**
+     * Starts the server
+     */
     public void startServer(){
-	channels.add( new ChannelData(createChannelId()));
-	serverThreed = new Thread(new Connector());
-	serverThreed.start();
+	Runtime.getRuntime().addShutdownHook(new Thread(this::closeServer));
+	channels.add(new ChannelData(createChannelId()));
+	serverThread = new Thread(new Connector());
+	serverThread.start();
 	System.out.println("Server truned on!");
     }
 
+    /**
+     * Turn of the server and all its threeds
+     */
     public void closeServer(){
 	try{
 	    serverSocket.close();
+	    connectedClientData.forEach(this::disconectClient);
 	    clientThreads.forEach(Thread::interrupt);
-	    serverThreed.interrupt();
+	    serverThread.interrupt();
+	    System.exit(0);
 	}catch (IOException e){
-	    e.printStackTrace();
+	    LOGGER.log(Level.SEVERE, e.toString(), e);
 	}
     }
 
@@ -69,23 +83,27 @@ public class Server
 		    ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
 		    ObjectOutputStream objectOutputStream = new ObjectOutputStream(client.getOutputStream());
 		    UserInfo userInfo = (UserInfo) objectInputStream.readObject();
-		    userInfo.setCurrentChannel(MAIN_CHANNEL);
+		    int mainChannel = 0;
+		    userInfo.setCurrentChannel(mainChannel);
 		    ClientData clientData = new ClientData(client,objectOutputStream, objectInputStream, userInfo);
 		    connectedClientData.add(clientData);
-		    Thread clientThread = new Thread(new Reciever(clientData));
+		    Thread clientThread = new Thread(new Receiver(clientData));
 		    clientThread.start();
 		    clientThreads.add(clientThread);
 		} catch (IOException | ClassNotFoundException e) {
-		    e.printStackTrace();
+		    LOGGER.log(Level.SEVERE, e.toString(), e);
+		    LOGGER.log(Level.INFO, "Turning off server due to error");
+		    closeServer();
 		}
 	    }
 	}
     }
 
 
-    private class Reciever implements Runnable {
-	ClientData clientData;
-	private Reciever(ClientData clientData) throws IOException {
+    private class Receiver implements Runnable, PacketHandler
+    {
+	private ClientData clientData;
+	private Receiver(ClientData clientData) {
 	    this.clientData = clientData;
 	}
 	@Override public void run() {
@@ -93,24 +111,42 @@ public class Server
 		while (true){
 		    if(clientData.socket.isClosed()) disconectClient(clientData);
 		    Object userRequest = clientData.objectInputStream.readObject();
-		    if(userRequest instanceof MessageData){
-			MessageData msg = (MessageData) userRequest;
-			channels.get(clientData.userInfo.getCurrentChannel()).addMessage(msg);
-			for (ClientData connectedClient : connectedClientData) {
-			    connectedClient.objectOutputStream.writeObject(new MessageData(msg.getMessage(),msg.getUserInfo()));
-			}
-		    }else if(userRequest instanceof RequestMessagesData){
-			RequestMessagesData requestMessagesData = (RequestMessagesData) userRequest;
-			clientData.objectOutputStream.writeObject(
-				channels.get(clientData.userInfo.getCurrentChannel())
-					.getMessage(requestMessagesData)
-			);
-		    }
+		    ((Packet) userRequest).dispatch(this);
 		}
 	    } catch (IOException ignored) {
 		disconectClient(clientData);
 	    }catch (ClassNotFoundException e){
 		e.printStackTrace();
+	    }
+	}
+
+	@Override public void handle(final MessageData msg) {
+	    try {
+		channels.get(clientData.userInfo.getCurrentChannel()).addMessage(msg);
+		for (ClientData connectedClient : connectedClientData) {
+		    connectedClient.objectOutputStream.writeObject(new MessageData(msg.getMessage(),msg.getUserInfo()));
+		}
+	    }catch (IOException e){
+		LOGGER.log(Level.WARNING, e.toString(), e);
+		LOGGER.log(Level.INFO, "Turning off client due to IO error");
+		disconectClient(clientData);
+	    }
+	}
+
+	@Override public void handle(final ChannelData packet) {
+
+	}
+
+	@Override public void handle(final RequestMessagesData requestMessagesData) {
+	    try{
+		clientData.objectOutputStream.writeObject(
+			channels.get(clientData.userInfo.getCurrentChannel())
+				.getMessage(requestMessagesData)
+		);
+	    }catch (IOException e){
+		LOGGER.log(Level.WARNING, e.toString(), e);
+		LOGGER.log(Level.INFO, "Turning off client due to IO error");
+		disconectClient(clientData);
 	    }
 	}
     }
