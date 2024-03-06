@@ -9,4 +9,5 @@ public interface PacketHandler
     public void handle(ChannelData packet);
     public void handle(RequestMessagesData packet);
     public void handle(UserInfo packet);
+    public void handle(DisconnectRequest packet);
 }

@@ -1,5 +1,6 @@
 package se.liu.lukha243.client_files;
 
+import se.liu.lukha243.both.DisconnectRequest;
 import se.liu.lukha243.both.MessageData;
 import se.liu.lukha243.both.RequestMessagesData;
 import se.liu.lukha243.both.UserInfo;
@@ -30,6 +31,7 @@ public class Client
     private ObjectInputStream objectInputStream;
     private List<MessageData> messages = new ArrayList<>();
     private List<ChatChangeListener> listeners = new ArrayList<>();
+    private boolean isClosed;
 
     /**
      * Creates a new client object
@@ -44,6 +46,7 @@ public class Client
 	objectOutputStream = new ObjectOutputStream(outputStream);
 	objectInputStream = new ObjectInputStream(serverSocket.getInputStream());
 	userInfo = new UserInfo("");
+	isClosed = false;
     }
 
     /**
@@ -81,8 +84,11 @@ public class Client
      */
     public void closeClient(){
 	try {
-	    sendMessage("[Client] left server room");
+	    objectOutputStream.writeObject(new DisconnectRequest());
+	    objectInputStream.close();
+	    objectOutputStream.close();
 	    serverSocket.close();
+	    isClosed = true;
 	} catch (IOException e) {
 	   LOGGER.log(Level.SEVERE, e.toString(), e);
 	}
@@ -128,6 +134,7 @@ public class Client
 		    System.out.println(msg); // REMOVE WHEN DONE
 		}
 	    } catch (IOException | ClassNotFoundException e) {
+		if(isClosed) return;
 		LOGGER.log(Level.SEVERE, e.toString(), e);
 		LOGGER.log(Level.INFO, "Turning of client");
 		closeClient();

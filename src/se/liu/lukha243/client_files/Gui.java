@@ -31,10 +31,12 @@ public class Gui
 	frame.setLayout(new BorderLayout());
 	frame.add(chatComponent, BorderLayout.CENTER);
 	frame.pack();
+	frame.setJMenuBar(createTopMenu());
 	frame.setVisible(true);
     }
     private void close(){
 	frame.dispose();
+	client.closeClient();
 	System.exit(0);
     }
     private void connectToServer() {
@@ -56,5 +58,27 @@ public class Gui
 	    }
 	    return;
 	}
+    }
+
+    public void reconnect(){
+	client.closeClient();
+	client = null;
+	frame.dispose();
+	open();
+    }
+
+    private JMenuBar createTopMenu(){
+	JMenuBar menuBar = new JMenuBar();
+	JMenu menuFileOptions = new JMenu("Settings");
+	JMenuItem menuItemReconect = new JMenuItem("Reconect",'R');
+	JMenuItem menuItemQuit = new JMenuItem("Exit",'E');
+	menuItemReconect.addActionListener(igonore -> reconnect());
+	menuItemQuit.addActionListener(igonre -> close());
+	menuFileOptions.add(menuItemReconect);
+	menuFileOptions.add(menuItemQuit);
+	JMenu menuFileConnection = new JMenu("View");
+	menuBar.add(menuFileOptions);
+	menuBar.add(menuFileConnection);
+	return menuBar;
     }
 }

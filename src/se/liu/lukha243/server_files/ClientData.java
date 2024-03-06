@@ -2,11 +2,9 @@ package se.liu.lukha243.server_files;
 
 import se.liu.lukha243.both.UserInfo;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -30,7 +28,10 @@ public class ClientData
      * All userinf for the client
      */
     public UserInfo userInfo;
-    private static final Logger LOGGER = Logger.getLogger(ClientData.class.getName());
+    /**
+     * Is connection on or off
+     */
+    public boolean isConnectionOn;
 
     /**
      * Creates client data for the server
@@ -45,5 +46,6 @@ public class ClientData
 	this.objectOutputStream = objectOutputStream;
 	this.objectInputStream = objectInputStream;
 	this.userInfo = userInfo;
+	this.isConnectionOn = true;
     }
 }

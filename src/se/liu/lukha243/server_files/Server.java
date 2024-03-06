@@ -1,6 +1,7 @@
 package se.liu.lukha243.server_files;
 
 import se.liu.lukha243.both.ChannelData;
+import se.liu.lukha243.both.DisconnectRequest;
 import se.liu.lukha243.both.MessageData;
 import se.liu.lukha243.both.Packet;
 import se.liu.lukha243.both.PacketHandler;
@@ -115,6 +116,7 @@ public class Server
 		    userRequest.dispatchHandler(this);
 		}
 	    } catch (IOException e) {
+		if(!clientData.isConnectionOn) return;
 		LOGGER.log(Level.WARNING, e.toString(), e);
 		LOGGER.log(Level.INFO, "Due to IOerror we disconect the user");
 		disconnectClient(clientData);
@@ -131,6 +133,7 @@ public class Server
 		    connectedClient.objectOutputStream.writeObject(new MessageData(msg.getMessage(),msg.getUserInfo()));
 		}
 	    }catch (IOException e){
+		if(!clientData.isConnectionOn) return;
 		LOGGER.log(Level.WARNING, e.toString(), e);
 		LOGGER.log(Level.INFO, "Turning off client due to IO error");
 		disconnectClient(clientData);
@@ -157,6 +160,11 @@ public class Server
 	@Override public void handle(final UserInfo packet) {
 	    return;
 	}
+
+	@Override public void handle(final DisconnectRequest packet) {
+
+	    disconnectClient(clientData);
+	}
     }
 
     /**
@@ -165,6 +173,8 @@ public class Server
      */
     public void disconnectClient(ClientData clientData){
 	try {
+	    if(!clientData.isConnectionOn) return;
+	    clientData.isConnectionOn = false;
 	    clientData.socket.close();
 	    clientData.objectOutputStream.close();
 	    clientData.objectInputStream.close();
@@ -174,7 +184,8 @@ public class Server
 	    clientThreads.remove(index);
 	    System.out.println("Client disconected");
 	} catch (IOException e) {
-	    LOGGER.log(Level.WARNING, "Problems happend when disconnecting user");
+	    LOGGER.log(Level.WARNING, e.toString(), e);
+	    LOGGER.log(Level.INFO, "Problems happend when disconnecting user");
 	}
     }
 
