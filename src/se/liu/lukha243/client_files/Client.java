@@ -1,5 +1,7 @@
 package se.liu.lukha243.client_files;
 
+import se.liu.lukha243.both.Packet;
+import se.liu.lukha243.both.PacketHandler;
 import se.liu.lukha243.both.Request;
 import se.liu.lukha243.both.MessageData;
 import se.liu.lukha243.both.RequestMessagesData;
@@ -25,14 +27,18 @@ import java.util.logging.Logger;
 public class Client
 {
     private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
-
+    /**
+     * The deafult amount of messages sent over the socket
+     */
+    public static final int DEAFULT_AMOUNT_MESSAGES = 20;
     private Socket serverSocket;
-    private UserInfo userInfo;
+    private volatile UserInfo userInfo;
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
     private List<MessageData> messages = new ArrayList<>();
     private List<ChatChangeListener> listeners = new ArrayList<>();
     private boolean isClosed;
+    private volatile Object data = null;
 
     /**
      * Creates a new client object
@@ -63,14 +69,14 @@ public class Client
      */
     public void startClient(){
 	try {
+	    Thread receiver = new Thread(new Receiver());
+	    receiver.start();
 	    objectOutputStream.writeObject(userInfo);
 	    MessageData[] oldMessages = getMessagesFromServer(0,20);
-	    System.out.println(Arrays.toString(oldMessages));
 	    if(oldMessages != null){
 		messages.addAll(List.of(oldMessages));
 	    }
-	    Thread receiver = new Thread(new Receiver());
-	    receiver.start();
+	    notifyAllListeners();
 	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
 	    LOGGER.log(Level.INFO, "Turning of client socket");
@@ -100,6 +106,7 @@ public class Client
      */
     public void sendMessage(String message){
 	try {
+	    if(message.isBlank()) return;
 	    objectOutputStream.writeObject(new MessageData(message, userInfo));
 	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -108,16 +115,22 @@ public class Client
 	}
     }
 
+    /**
+     * Creates an channel for the user
+     */
     public void createChannel(){
 	try{
+	    userInfo = null;
 	    objectOutputStream.writeObject(new Request(RequestType.CREATE_NEW_CHANNEL));
-	    userInfo = (UserInfo)objectInputStream.readObject();
-	    MessageData[] channelMessages = getMessagesFromServer(0, 20);
+	    while (userInfo == null) {
+		Thread.onSpinWait();
+	    }
 	    messages.clear();
+	    MessageData[] channelMessages = getMessagesFromServer(0, 20);
 	    if(channelMessages != null)
 	    	messages.addAll(List.of(channelMessages));
 	    notifyAllListeners();
-	}catch (IOException | ClassNotFoundException e){
+	}catch (IOException e){
 	    if(isClosed) return;
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
 	    LOGGER.log(Level.INFO, "Turning of client");
@@ -125,8 +138,26 @@ public class Client
 	}
     }
 
-    public void joinChannel(){
-
+    /**
+     * Joins a chossen channel
+     * @param channelId the channel id you want to connect to
+     */
+    public void joinChannel(int channelId){
+	try {
+	    userInfo = null;
+	    objectOutputStream.writeObject(new Request(RequestType.JOIN_CHANNEL,new int[]{channelId}));
+	    messages.clear();
+	    while (userInfo == null) {
+		Thread.onSpinWait();
+	    }
+	    MessageData[] channelMessages = getMessagesFromServer(0, 20);
+	    if(channelMessages != null)
+		messages.addAll(List.of(channelMessages));
+	    notifyAllListeners();
+	} catch (IOException e) {
+	    LOGGER.log(Level.SEVERE, e.toString(),e);
+	    closeClient();
+	}
     }
 
     /**
@@ -140,8 +171,13 @@ public class Client
     public MessageData[] getMessagesFromServer(int pointer, int amount) {
 	try{
 	    objectOutputStream.writeObject(new RequestMessagesData(pointer,amount));
-	    return (MessageData[]) objectInputStream.readObject();
-	}catch (IOException | ClassNotFoundException e){
+	    while (data == null) {
+		Thread.onSpinWait();
+	    }
+	    Object copyData = data;
+	    data = null;
+	    return ((RequestMessagesData) copyData).getReturnData();
+	}catch (IOException e){
 	    if(isClosed) return null;
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
 	    LOGGER.log(Level.INFO, "Turning of client");
@@ -158,22 +194,12 @@ public class Client
 	listeners.add(listener);
     }
 
-    /**
-     * Gets all messages
-     * @return all messages
-     */
-    public List<MessageData> getMessages() {
-	return messages;
-    }
-    private class Receiver implements Runnable{
+    private class Receiver implements Runnable, PacketHandler
+    {
 	@Override public void run() {
 	    try {
 		while (true){
-		    MessageData message = (MessageData) objectInputStream.readObject();
-		    messages.add(message);
-		    notifyAllListeners();
-		    String msg = message.getMessage();
-		    System.out.println(msg); // REMOVE WHEN DONE
+		    ((Packet) objectInputStream.readObject()).dispatchHandler(this);
 		}
 	    } catch (IOException | ClassNotFoundException e) {
 		if(isClosed) return;
@@ -181,6 +207,22 @@ public class Client
 		LOGGER.log(Level.INFO, "Turning of client");
 		closeClient();
 	    }
+	}
+
+	@Override public void handle(final MessageData packet) {
+	    notifyAllListeners();
+	}
+
+	@Override public void handle(final RequestMessagesData packet) {
+	    data = packet;
+	}
+
+	@Override public void handle(final UserInfo packet) {
+	    userInfo = packet;
+	}
+
+	@Override public void handle(final Request packet) {
+
 	}
     }
     private void notifyAllListeners(){

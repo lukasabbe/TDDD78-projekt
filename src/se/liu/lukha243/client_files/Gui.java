@@ -79,10 +79,23 @@ public class Gui
 	JMenu menuFileConnection = new JMenu("View");
 	JMenuItem menuItemJoinChannel = new JMenuItem("Join channel");
 	JMenuItem menuItemCreateChannel = new JMenuItem("Create channel");
+	menuItemCreateChannel.addActionListener(igonore -> client.createChannel());
+	menuItemJoinChannel.addActionListener(igonore -> {
+	    while (true){
+		try{
+		    int channelId = Integer.parseInt(JOptionPane.showInputDialog("Skriv in ett nummer"));
+		    client.joinChannel(channelId);
+		    break;
+		}catch (NumberFormatException e){
+		    LOGGER.log(Level.WARNING, e.toString(), e);
+		}
+	    }
+	});
 	menuFileConnection.add(menuItemJoinChannel);
 	menuFileConnection.add(menuItemCreateChannel);
 	menuBar.add(menuFileOptions);
 	menuBar.add(menuFileConnection);
 	return menuBar;
     }
+
 }

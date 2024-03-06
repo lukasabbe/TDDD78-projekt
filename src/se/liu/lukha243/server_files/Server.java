@@ -34,6 +34,7 @@ Saker att fråga:
 public class Server
 {
     private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
+    private static final int MAIN_CHANNEL = 0;
     private ServerSocket serverSocket;
     private List<ChannelData> channels = new ArrayList<>();
     private int currentChannelId = 0;
@@ -128,9 +129,11 @@ public class Server
 
 	@Override public void handle(final MessageData msg) {
 	    try {
-		channels.get(clientData.userInfo.getCurrentChannel()).addMessage(msg);
+		final int currentChannel = clientData.userInfo.getCurrentChannel();
+		channels.get(currentChannel).addMessage(msg);
 		for (ClientData connectedClient : connectedClientData) {
-		    connectedClient.objectOutputStream.writeObject(new MessageData(msg.getMessage(),msg.getUserInfo()));
+		    if(currentChannel == connectedClient.userInfo.getCurrentChannel())
+		    	connectedClient.objectOutputStream.writeObject(new MessageData(msg.getMessage(),msg.getUserInfo()));
 		}
 	    }catch (IOException e){
 		if(!clientData.isConnectionOn) return;
@@ -142,10 +145,10 @@ public class Server
 
 	@Override public void handle(final RequestMessagesData requestMessagesData) {
 	    try{
-		clientData.objectOutputStream.writeObject(
-			channels.get(clientData.userInfo.getCurrentChannel())
-				.getMessage(requestMessagesData)
-		);
+		MessageData[] oldMessages = channels.get(clientData.userInfo.getCurrentChannel())
+			.getMessage(requestMessagesData);
+		requestMessagesData.setReturnData(oldMessages);
+		clientData.objectOutputStream.writeObject(requestMessagesData);
 	    }catch (IOException e){
 		LOGGER.log(Level.WARNING, e.toString(), e);
 		LOGGER.log(Level.INFO, "Turning off client due to IO error");
@@ -161,6 +164,7 @@ public class Server
 	    switch (packet.getRequestType()){
 		case DISCONNECT_REQUEST -> disconnectClient(clientData);
 		case CREATE_NEW_CHANNEL -> createNewChannel(clientData);
+		case JOIN_CHANNEL -> joinChannel(clientData, packet.getArgs()[0]);
 	    }
 	}
 
@@ -194,6 +198,9 @@ public class Server
 	    clientData.userInfo.setCurrentChannel(newChannel);
 	    channels.add(new ChannelData(newChannel, clientData.userInfo));
 	    clientData.objectOutputStream.writeObject(clientData.userInfo);
+	    final MessageData serverMessage = new MessageData("Vällkomen till din nya chat\nID:" + newChannel + ". Andra kan joina med det ID:t",
+						    new UserInfo("[SERVER]"));
+	    channels.get(newChannel).addMessage(serverMessage);
 	}catch (IOException e){
 	    if(!clientData.isConnectionOn) return;
 	    LOGGER.log(Level.WARNING, e.toString(), e);
@@ -201,6 +208,23 @@ public class Server
 	    disconnectClient(clientData);
 	}
 
+    }
+
+    private void joinChannel(ClientData clientData, int channelId){
+	try{
+	    if(channels.size() >= channelId){
+		clientData.userInfo.setCurrentChannel(channelId);
+		clientData.objectOutputStream.writeObject(clientData.userInfo);
+	    }else{
+		clientData.userInfo.setCurrentChannel(MAIN_CHANNEL);
+		clientData.objectOutputStream.writeObject(clientData.userInfo);
+	    }
+	}catch (IOException e){
+	    if(!clientData.isConnectionOn) return;
+	    LOGGER.log(Level.WARNING, e.toString(), e);
+	    LOGGER.log(Level.INFO, "Disconnecting user");
+	    disconnectClient(clientData);
+	}
     }
 
     private int createChannelId() {

@@ -16,35 +16,61 @@ public class ChatComponent extends JPanel implements ChatChangeListener
     private JTextArea textArea;
     private JTextField sendChat;
     private JButton sendButton;
+    private int pointer = 0;
+    private boolean hasFocus = false;
     public ChatComponent(Client client){
 	this.client = client;
 	textArea = new JTextArea();
 	textArea.setEditable(false);
 	sendChat = new JTextField("Write your message here");
 	sendButton = new JButton("Send message");
+	JButton loadOldMessages = new JButton("^");
+	JButton loadNewMessages = new JButton("v");
 	setLayout(new BorderLayout());
 	JPanel inputTextPanel = new JPanel();
-	add(textArea, BorderLayout.NORTH);
+	JPanel textAreaPanel = new JPanel();
+	textAreaPanel.setLayout(new BorderLayout());
+	textAreaPanel.add(textArea,BorderLayout.CENTER);
+	textAreaPanel.add(loadOldMessages, BorderLayout.WEST);
+	textAreaPanel.add(loadNewMessages, BorderLayout.EAST);
+	//add(textArea, BorderLayout.NORTH);
 	inputTextPanel.setLayout(new BorderLayout());
 	inputTextPanel.add(sendChat, BorderLayout.CENTER);
 	inputTextPanel.add(sendButton, BorderLayout.EAST);
 	add(inputTextPanel, BorderLayout.SOUTH);
+	add(textAreaPanel);
 	sendChat.addFocusListener(new FocusListener()
 	{
 	    @Override public void focusGained(final FocusEvent e) {
 		sendChat.setText("");
+		hasFocus=true;
 	    }
 
 	    @Override public void focusLost(final FocusEvent e) {
+		hasFocus=false;
 		if(sendChat.getText().isEmpty())
 		    sendChat.setText("Write your message here");
 	    }
 	});
 	sendButton.setDefaultCapable(true);
 	sendButton.addActionListener(event ->{
+	    if(!hasFocus && sendChat.getText().equals("Write your message here")) return;
 	    client.sendMessage(sendChat.getText());
+	    pointer = 0;
 	    sendChat.setText("");
 	});
+	loadOldMessages.addActionListener(ignore->{
+	    pointer += Client.DEAFULT_AMOUNT_MESSAGES/2;
+	    repaint();
+	});
+	loadNewMessages.addActionListener(ignore->{
+	    pointer -= Client.DEAFULT_AMOUNT_MESSAGES/2;
+	    if(pointer < 0){
+		pointer = 0;
+	    }
+	    repaint();
+	});
+
 
 	repaint();
     }
@@ -61,7 +87,9 @@ public class ChatComponent extends JPanel implements ChatChangeListener
     private String generateMessageString(){
 	StringBuilder chatString = new StringBuilder();
 	chatString.append("Chat \n");
-	for(MessageData message : client.getMessages()){
+	MessageData[] messageData = client.getMessagesFromServer(pointer, 20);
+	if(messageData == null) return chatString.toString();
+	for(MessageData message : messageData){
 	    chatString
 		    .append(message.getUserInfo().getUserName())
 		    .append(" : ")

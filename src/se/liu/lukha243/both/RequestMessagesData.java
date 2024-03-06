@@ -10,6 +10,8 @@ public class RequestMessagesData implements Serializable, Packet
     private int pointer;
     private int amount;
 
+    private MessageData[] returnData = null;
+
     /**
      * creates an request to the server
      * @param pointer
@@ -34,6 +36,14 @@ public class RequestMessagesData implements Serializable, Packet
      */
     public int getAmount() {
 	return amount;
+    }
+
+    public MessageData[] getReturnData() {
+	return returnData;
+    }
+
+    public void setReturnData(final MessageData[] returnData) {
+	this.returnData = returnData;
     }
 
     /**
