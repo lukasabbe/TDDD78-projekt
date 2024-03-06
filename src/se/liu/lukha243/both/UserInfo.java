@@ -2,7 +2,7 @@ package se.liu.lukha243.both;
 
 import java.io.Serializable;
 
-public class UserInfo implements Serializable
+public class UserInfo implements Serializable, Packet
 {
     private String userName;
     private int userId;
@@ -40,5 +40,9 @@ public class UserInfo implements Serializable
 
     public void setCurrentChannel(final int currentChannel) {
 	this.currentChannel = currentChannel;
+    }
+
+    @Override public void dispatch(final PacketHandler handler) {
+	handler.handle(this);
     }
 }

@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChannelData implements Serializable
+public class ChannelData implements Serializable, Packet
 {
     public final int id;
     private List<MessageData> messages = new ArrayList<>();
@@ -60,10 +60,13 @@ public class ChannelData implements Serializable
 	MessageData[] messages = new MessageData[amount];
 	int amountCounter = amount-1;
 	for(int i = this.messages.size()-pointer-1; i >= this.messages.size()-(amount+pointer); i--){
-	    System.out.println(i);
 	    messages[amountCounter] = this.messages.get(i);
 	    amountCounter--;
 	}
 	return messages;
+    }
+
+    @Override public void dispatch(final PacketHandler handler) {
+	handler.handle(this);
     }
 }

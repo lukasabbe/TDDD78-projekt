@@ -64,7 +64,6 @@ public class Server
     public void closeServer(){
 	try{
 	    serverSocket.close();
-	    connectedClientData.forEach(this::disconectClient);
 	    clientThreads.forEach(Thread::interrupt);
 	    serverThread.interrupt();
 	    System.exit(0);
@@ -109,9 +108,8 @@ public class Server
 	@Override public void run() {
 	    try {
 		while (true){
-		    if(clientData.socket.isClosed()) disconectClient(clientData);
-		    Object userRequest = clientData.objectInputStream.readObject();
-		    ((Packet) userRequest).dispatch(this);
+		    Packet userRequest = (Packet) clientData.objectInputStream.readObject();
+		    userRequest.dispatch(this);
 		}
 	    } catch (IOException ignored) {
 		disconectClient(clientData);
@@ -134,7 +132,7 @@ public class Server
 	}
 
 	@Override public void handle(final ChannelData packet) {
-
+	    return;
 	}
 
 	@Override public void handle(final RequestMessagesData requestMessagesData) {
@@ -148,6 +146,10 @@ public class Server
 		LOGGER.log(Level.INFO, "Turning off client due to IO error");
 		disconectClient(clientData);
 	    }
+	}
+
+	@Override public void handle(final UserInfo packet) {
+	    return;
 	}
     }
 

@@ -39,8 +39,6 @@ public class Client
      * @throws UnknownHostException
      */
     public Client(String ip, int port) throws IOException, UnknownHostException {
-	LOGGER.log(Level.INFO, "test");
-	System.out.println("test");
 	serverSocket = new Socket(ip, port);
 	OutputStream outputStream = serverSocket.getOutputStream();
 	objectOutputStream = new ObjectOutputStream(outputStream);

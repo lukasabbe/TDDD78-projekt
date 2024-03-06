@@ -2,7 +2,7 @@ package se.liu.lukha243.both;
 
 import java.io.Serializable;
 
-public class RequestMessagesData implements Serializable
+public class RequestMessagesData implements Serializable, Packet
 {
     private int pointer;
     private int amount;
@@ -26,5 +26,9 @@ public class RequestMessagesData implements Serializable
 
     public void setAmount(final int amount) {
 	this.amount = amount;
+    }
+
+    @Override public void dispatch(final PacketHandler handler) {
+	handler.handle(this);
     }
 }
