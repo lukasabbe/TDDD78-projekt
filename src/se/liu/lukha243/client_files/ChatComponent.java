@@ -1,6 +1,6 @@
 package se.liu.lukha243.client_files;
 
-import se.liu.lukha243.both.MessageData;
+import se.liu.lukha243.both.requests.MessagePacket;
 
 import javax.swing.*;
 import java.awt.*;
@@ -89,10 +89,10 @@ public class ChatComponent extends JPanel implements ChatChangeListener
     private String generateMessageString(){
 	StringBuilder chatString = new StringBuilder();
 	chatString.append("Chat \n");
-	MessageData[] messageData = client.getMessagesFromServer(pointer, Client.DEFAULT_AMOUNT_MESSAGES);
+	MessagePacket[] messageData = client.getMessagesFromServer(pointer, Client.DEFAULT_AMOUNT_MESSAGES);
 	if(messageData == null)
 	    return chatString.toString();
-	for(MessageData message : messageData){
+	for(MessagePacket message : messageData){
 	    chatString
 		    .append(message.getUserInfo().getUserName())
 		    .append(" : ")

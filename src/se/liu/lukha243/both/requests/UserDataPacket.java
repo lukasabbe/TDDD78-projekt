@@ -1,21 +1,30 @@
-package se.liu.lukha243.both;
+package se.liu.lukha243.both.requests;
 
-import java.io.Serializable;
+import se.liu.lukha243.both.Packet;
+import se.liu.lukha243.client_files.Client;
+import se.liu.lukha243.server_files.ClientData;
+import se.liu.lukha243.server_files.Server;
 
 /**
- * An Serializable object to send over user info to the server
+ * The user data pcket. Its when the server has uppdated the user object. Like changed name or channel
  */
-public class UserInfo implements Serializable, Packet
+public class UserDataPacket extends Packet
 {
     private String userName;
 
     private int currentChannel;
+    @Override public void runServer(final ClientData clientData, final Server server) {
 
+    }
+
+    @Override public void runClient(final UserDataPacket userInfo, final Client client) {
+        client.setUserInfo(this);
+    }
     /**
      * Creates an userinfo object
      * @param userName the username of the user
      */
-    public UserInfo(final String userName) {
+    public UserDataPacket(final String userName) {
 	this.userName = userName;
     }
 
@@ -49,12 +58,5 @@ public class UserInfo implements Serializable, Packet
      */
     public void setCurrentChannel(final int currentChannel) {
 	this.currentChannel = currentChannel;
-    }
-    /**
-     * Handler for request to server
-     * @param handler
-     */
-    @Override public void trigger(final PacketHandler handler) {
-	handler.handle(this);
     }
 }

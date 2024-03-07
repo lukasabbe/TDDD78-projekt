@@ -1,14 +1,13 @@
 package se.liu.lukha243.client_files;
 
 import se.liu.lukha243.both.Packet;
-import se.liu.lukha243.both.PacketHandler;
-import se.liu.lukha243.both.Request;
-import se.liu.lukha243.both.MessageData;
-import se.liu.lukha243.both.RequestMessagesData;
-import se.liu.lukha243.both.RequestType;
-import se.liu.lukha243.both.UserInfo;
+import se.liu.lukha243.both.requests.CreateNewChannelPacket;
+import se.liu.lukha243.both.requests.DisconnectPacket;
+import se.liu.lukha243.both.requests.JoinChannelPacket;
+import se.liu.lukha243.both.requests.MessagePacket;
+import se.liu.lukha243.both.requests.RequestOldMessagesPacket;
+import se.liu.lukha243.both.requests.UserDataPacket;
 
-import javax.swing.plaf.synth.SynthUI;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -32,7 +31,7 @@ public class Client
      */
     public static final int DEFAULT_AMOUNT_MESSAGES = 20;
     private Socket serverSocket;
-    private volatile UserInfo userInfo;
+    private volatile UserDataPacket userInfo;
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
     private List<ChatChangeListener> listeners = new ArrayList<>();
@@ -51,7 +50,7 @@ public class Client
 	OutputStream outputStream = serverSocket.getOutputStream();
 	objectOutputStream = new ObjectOutputStream(outputStream);
 	objectInputStream = new ObjectInputStream(serverSocket.getInputStream());
-	userInfo = new UserInfo("");
+	userInfo = new UserDataPacket("");
 	isClosed = false;
     }
 
@@ -68,7 +67,7 @@ public class Client
      */
     public void startClient(){
 	try {
-	    Thread receiver = new Thread(new Receiver());
+	    Thread receiver = new Thread(new Receiver(this));
 	    receiver.start();
 	    objectOutputStream.writeObject(userInfo);
 	    notifyAllListeners();
@@ -85,7 +84,7 @@ public class Client
      */
     public void closeClient(){
 	try {
-	    objectOutputStream.writeObject(new Request(RequestType.DISCONNECT_REQUEST));
+	    objectOutputStream.writeObject(new DisconnectPacket());
 	    objectInputStream.close();
 	    objectOutputStream.close();
 	    serverSocket.close();
@@ -103,7 +102,7 @@ public class Client
     public void sendMessage(String message){
 	try {
 	    if(message.isBlank()) return;
-	    objectOutputStream.writeObject(new MessageData(message, userInfo));
+	    objectOutputStream.writeObject(new MessagePacket(message, userInfo));
 	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
 	    LOGGER.log(Level.INFO, "Turning of client socket");
@@ -117,7 +116,7 @@ public class Client
     public void createChannel(){
 	try{
 	    userInfo = null;
-	    objectOutputStream.writeObject(new Request(RequestType.CREATE_NEW_CHANNEL));
+	    objectOutputStream.writeObject(new CreateNewChannelPacket());
 	    while (userInfo == null) {
 		Thread.onSpinWait();
 	    }
@@ -136,11 +135,12 @@ public class Client
      */
     public void joinChannel(int channelId){
 	try {
-	    userInfo = null;
-	    objectOutputStream.writeObject(new Request(RequestType.JOIN_CHANNEL,new int[]{channelId}));
-	    while (userInfo == null) {
+	    objectOutputStream.writeObject(new JoinChannelPacket(channelId));
+	    while (data == null) {
 		Thread.onSpinWait();
 	    }
+	    userInfo.setCurrentChannel(((JoinChannelPacket)data).getChannelId());
+	    data = null;
 	    notifyAllListeners();
 	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, e.toString(),e);
@@ -155,15 +155,15 @@ public class Client
      * @param amount the amount to load
      * @return The messages
      */
-    public MessageData[] getMessagesFromServer(int pointer, int amount) {
+    public MessagePacket[] getMessagesFromServer(int pointer, int amount) {
 	try{
-	    objectOutputStream.writeObject(new RequestMessagesData(pointer,amount));
+	    objectOutputStream.writeObject(new RequestOldMessagesPacket(pointer, amount));
 	    while (data == null) {
 		Thread.onSpinWait();
 	    }
 	    Object copyData = data;
 	    data = null;
-	    return ((RequestMessagesData) copyData).getReturnData();
+	    return ((RequestOldMessagesPacket) copyData).getReturnData();
 	}catch (IOException e){
 	    if(isClosed) return null;
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -181,12 +181,16 @@ public class Client
 	listeners.add(listener);
     }
 
-    private class Receiver implements Runnable, PacketHandler
+    private class Receiver implements Runnable
     {
+	private Client client;
+	private Receiver(Client client){
+	    this.client = client;
+	}
 	@Override public void run() {
 	    try {
 		while (true){
-		    ((Packet) objectInputStream.readObject()).trigger(this);
+		    ((Packet) objectInputStream.readObject()).runClient(userInfo, client);
 		}
 	    } catch (IOException | ClassNotFoundException e) {
 		if(isClosed) return;
@@ -195,25 +199,29 @@ public class Client
 		closeClient();
 	    }
 	}
-
-	@Override public void handle(final MessageData packet) {
-	    notifyAllListeners();
-	}
-
-	@Override public void handle(final RequestMessagesData packet) {
-	    data = packet;
-	}
-
-	@Override public void handle(final UserInfo packet) {
-	    userInfo = packet;
-	}
-
-	@Override public void handle(final Request packet) {
-
-	}
     }
-    private void notifyAllListeners(){
+
+    /**
+     * Notifyes all listenrs to uppdate chat
+     */
+    public void notifyAllListeners(){
 	listeners.forEach(ChatChangeListener :: chatChange);
+    }
+
+    /**
+     * Set the data of temp object
+     * @param data
+     */
+    public void setData(final Object data) {
+	this.data = data;
+    }
+
+    /**
+     * Set user packet for changes
+     * @param userInfo
+     */
+    public void setUserInfo(final UserDataPacket userInfo) {
+	this.userInfo = userInfo;
     }
 }
 

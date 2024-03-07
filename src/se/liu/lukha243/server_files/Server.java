@@ -1,12 +1,8 @@
 package se.liu.lukha243.server_files;
 
-import se.liu.lukha243.both.ChannelData;
-import se.liu.lukha243.both.Request;
-import se.liu.lukha243.both.MessageData;
-import se.liu.lukha243.both.Packet;
-import se.liu.lukha243.both.PacketHandler;
-import se.liu.lukha243.both.RequestMessagesData;
-import se.liu.lukha243.both.UserInfo;
+import se.liu.lukha243.both.requests.JoinChannelPacket;
+import se.liu.lukha243.both.requests.MessagePacket;
+import se.liu.lukha243.both.requests.UserDataPacket;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,13 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-/*
-Saker att fråga:
-1. Var ska man skapa sin logger enl er?
-2. Vad fan snackar Similar children om
- */
-
 
 /**
  * Create a server for the chat serivice.
@@ -58,7 +47,7 @@ public class Server
     public void startServer(){
 	Runtime.getRuntime().addShutdownHook(new Thread(this::closeServer));
 	channels.add(new ChannelData(createChannelId()));
-	serverThread = new Thread(new Connector());
+	serverThread = new Thread(new Connector(this));
 	serverThread.start();
 	System.out.println("Server truned on!");
     }
@@ -78,6 +67,10 @@ public class Server
     }
 
     private class Connector implements Runnable {
+	private Server server;
+	private Connector(Server server){
+	    this.server = server;
+	}
 	@Override public void run() {
 	    while (true){
 		try {
@@ -86,12 +79,12 @@ public class Server
 		    InputStream inputStream = client.getInputStream();
 		    ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
 		    ObjectOutputStream objectOutputStream = new ObjectOutputStream(client.getOutputStream());
-		    UserInfo userInfo = (UserInfo) objectInputStream.readObject();
+		    UserDataPacket userInfo = (UserDataPacket) objectInputStream.readObject();
 		    int mainChannel = 0;
 		    userInfo.setCurrentChannel(mainChannel);
 		    ClientData clientData = new ClientData(client,objectOutputStream, objectInputStream, userInfo);
 		    connectedClientData.add(clientData);
-		    Thread clientThread = new Thread(new Receiver(clientData));
+		    Thread clientThread = new Thread(new Receiver(clientData, server));
 		    clientThread.start();
 		    clientThreads.add(clientThread);
 		} catch (IOException | ClassNotFoundException e) {
@@ -104,77 +97,11 @@ public class Server
     }
 
 
-    private class Receiver implements Runnable, PacketHandler
-    {
-	private ClientData clientData;
-	private Receiver(ClientData clientData) {
-	    this.clientData = clientData;
-	}
-	@Override public void run() {
-	    try {
-		while (true){
-		    Packet userRequest = (Packet) clientData.objectInputStream.readObject();
-		    userRequest.trigger(this);
-		}
-	    } catch (IOException e) {
-		if(!clientData.isConnectionOn) return;
-		LOGGER.log(Level.WARNING, e.toString(), e);
-		LOGGER.log(Level.INFO, "Due to IOerror we disconect the user");
-		disconnectClient(clientData);
-	    }catch (ClassNotFoundException e){
-		LOGGER.log(Level.SEVERE, e.toString(), e);
-		closeServer();
-	    }
-	}
-
-	@Override public void handle(final MessageData msg) {
-	    try {
-		final int currentChannel = clientData.userInfo.getCurrentChannel();
-		channels.get(currentChannel).addMessage(msg);
-		for (ClientData connectedClient : connectedClientData) {
-		    if(currentChannel == connectedClient.userInfo.getCurrentChannel())
-		    	connectedClient.objectOutputStream.writeObject(new MessageData(msg.getMessage(),msg.getUserInfo()));
-		}
-	    }catch (IOException e){
-		if(!clientData.isConnectionOn) return;
-		LOGGER.log(Level.WARNING, e.toString(), e);
-		LOGGER.log(Level.INFO, "Turning off client due to IO error");
-		disconnectClient(clientData);
-	    }
-	}
-
-	@Override public void handle(final RequestMessagesData requestMessagesData) {
-	    try{
-		MessageData[] oldMessages = channels.get(clientData.userInfo.getCurrentChannel())
-			.getMessage(requestMessagesData);
-		requestMessagesData.setReturnData(oldMessages);
-		clientData.objectOutputStream.writeObject(requestMessagesData);
-	    }catch (IOException e){
-		LOGGER.log(Level.WARNING, e.toString(), e);
-		LOGGER.log(Level.INFO, "Turning off client due to IO error");
-		disconnectClient(clientData);
-	    }
-	}
-
-	@Override public void handle(final UserInfo packet) {
-	    return;
-	}
-
-	@Override public void handle(final Request packet) {
-	    switch (packet.getRequestType()){
-		case DISCONNECT_REQUEST -> disconnectClient(clientData);
-		case CREATE_NEW_CHANNEL -> createNewChannel(clientData);
-		case JOIN_CHANNEL -> joinChannel(clientData, packet.getArgs()[0]);
-	    }
-	}
-
-    }
-
     /**
      * Disconnect the client you want
      * @param clientData the client you want to disconnect
      */
-    private void disconnectClient(ClientData clientData){
+    public void disconnectClient(ClientData clientData){
 	try {
 	    if(!clientData.isConnectionOn) return;
 	    clientData.isConnectionOn = false;
@@ -192,14 +119,15 @@ public class Server
 	}
     }
 
-    private void createNewChannel(ClientData clientData){
+    public void createNewChannel(ClientData clientData){
 	try {
 	    int newChannel = createChannelId();
 	    clientData.userInfo.setCurrentChannel(newChannel);
 	    channels.add(new ChannelData(newChannel, clientData.userInfo));
 	    clientData.objectOutputStream.writeObject(clientData.userInfo);
-	    final MessageData serverMessage = new MessageData("Vällkomen till din nya chat\nID:" + newChannel + ". Andra kan joina med det ID:t",
-						    new UserInfo("[SERVER]"));
+	    final MessagePacket
+		    serverMessage = new MessagePacket("Vällkomen till din nya chat\nID:" + newChannel + ". Andra kan joina med det ID:t",
+						    new UserDataPacket("[SERVER]"));
 	    channels.get(newChannel).addMessage(serverMessage);
 	}catch (IOException e){
 	    if(!clientData.isConnectionOn) return;
@@ -210,14 +138,14 @@ public class Server
 
     }
 
-    private void joinChannel(ClientData clientData, int channelId){
+    public void joinChannel(ClientData clientData, int channelId){
 	try{
 	    if(channels.size() >= channelId){
 		clientData.userInfo.setCurrentChannel(channelId);
-		clientData.objectOutputStream.writeObject(clientData.userInfo);
+		clientData.objectOutputStream.writeObject(new JoinChannelPacket(channelId));
 	    }else{
 		clientData.userInfo.setCurrentChannel(MAIN_CHANNEL);
-		clientData.objectOutputStream.writeObject(clientData.userInfo);
+		clientData.objectOutputStream.writeObject(new JoinChannelPacket(channelId));
 	    }
 	}catch (IOException e){
 	    if(!clientData.isConnectionOn) return;
@@ -230,6 +158,18 @@ public class Server
     private int createChannelId() {
 	currentChannelId++;
 	return currentChannelId-1;
+    }
+
+    public List<ChannelData> getChannels() {
+	return channels;
+    }
+
+    public List<Thread> getClientThreads() {
+	return clientThreads;
+    }
+
+    public List<ClientData> getConnectedClientData() {
+	return connectedClientData;
     }
 }
 

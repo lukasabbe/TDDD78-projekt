@@ -1,6 +1,6 @@
 package se.liu.lukha243.server_files;
 
-import se.liu.lukha243.both.UserInfo;
+import se.liu.lukha243.both.requests.UserDataPacket;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -26,7 +26,7 @@ public class ClientData
     /**
      * All userinf for the client
      */
-    public UserInfo userInfo;
+    public UserDataPacket userInfo;
     /**
      * Is connection on or off
      */
@@ -39,7 +39,7 @@ public class ClientData
      * @param objectInputStream Input stream from the client
      * @param userInfo Client data for the user
      */
-    public ClientData(final Socket socket, final ObjectOutputStream objectOutputStream, final ObjectInputStream objectInputStream, final UserInfo userInfo)
+    public ClientData(final Socket socket, final ObjectOutputStream objectOutputStream, final ObjectInputStream objectInputStream, final UserDataPacket userInfo)
     {
 	this.socket = socket;
 	this.objectOutputStream = objectOutputStream;

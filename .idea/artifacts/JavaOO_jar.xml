@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="JavaOO:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/JavaOO_jar</output-path>
+    <root id="archive" name="JavaOO.jar">
+      <element id="module-output" name="JavaOO" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/annotations-24.0.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/tddd78-annotations/tddd78-annotations.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/miglayout/miglayout-swing-5.3-20201107.230034-455.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/miglayout/miglayout-core-5.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/commons-cli/commons-cli-1.5.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/gson/gson-2.8.9.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
