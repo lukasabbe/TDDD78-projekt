@@ -77,8 +77,8 @@ public class ChatComponent extends JPanel implements ChatChangeListener
     @Override
     public Dimension getPreferredSize() {
 	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-	int aQuarter = 4;
-	int aHalf = 2;
+	final int aQuarter = 4;
+	final int aHalf = 2;
 	return new Dimension((int)(screenSize.getWidth()/aQuarter), ((int)screenSize.getHeight()/aHalf));
     }
 

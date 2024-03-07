@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * The reciver that takes in all new packtes being sent to the server
+ */
 public class Receiver implements Runnable
 {
     private static final Logger LOGGER = Logger.getLogger(Receiver.class.getName());

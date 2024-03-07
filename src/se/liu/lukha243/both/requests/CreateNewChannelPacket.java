@@ -8,6 +8,7 @@ import se.liu.lukha243.server_files.Server;
 
 /**
  * Packet for creating a new channel for the user
+ * If you sends it you will return an User packet.
  */
 public class CreateNewChannelPacket extends Packet
 {
@@ -16,7 +17,7 @@ public class CreateNewChannelPacket extends Packet
         server.createNewChannel(clientData);
     }
 
-    @Override public void runClient(final UserDataPacket userInfo, final Client client) {
+    @Override public void runClient(final Client client) {
 
     }
 }

@@ -91,7 +91,7 @@ public class Client
 	    isClosed = true;
 	} catch (IOException e) {
 	   LOGGER.log(Level.SEVERE, e.toString(), e);
-	   System.exit(0); // turn of program if it fails to close down
+	   System.exit(1); // turn of program if it fails to close down
 	}
     }
 
@@ -190,7 +190,7 @@ public class Client
 	@Override public void run() {
 	    try {
 		while (true){
-		    ((Packet) objectInputStream.readObject()).runClient(userInfo, client);
+		    ((Packet) objectInputStream.readObject()).runClient(client);
 		}
 	    } catch (IOException | ClassNotFoundException e) {
 		if(isClosed) return;

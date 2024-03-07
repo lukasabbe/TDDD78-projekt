@@ -64,15 +64,4 @@ public class ChannelData implements Serializable
 	return messages;
     }
 
-    /**
-     * Gets the id of the server
-     * @return
-     */
-    public int getId(){
-	return id;
-    }
-
-    public UserDataPacket getClient(){
-	return client;
-    }
 }

@@ -22,8 +22,8 @@ public class Gui
     public void open(){
 	frame = new JFrame("Lurres chat");
 	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-	int aQuarter = 4;
-	int aHalf = 2;
+	final int aQuarter = 4;
+	final int aHalf = 2;
 	frame.setSize((int)(screenSize.getWidth() / aQuarter), ((int)screenSize.getHeight() / aHalf));
 
 	connectToServer();

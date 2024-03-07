@@ -1,6 +1,5 @@
 package se.liu.lukha243.both;
 
-import se.liu.lukha243.both.requests.UserDataPacket;
 import se.liu.lukha243.client_files.Client;
 import se.liu.lukha243.server_files.ClientData;
 import se.liu.lukha243.server_files.Server;
@@ -18,5 +17,5 @@ public abstract class Packet implements Serializable
      */
     protected static final Logger LOGGER = Logger.getLogger(Packet.class.getName());
     public abstract void runServer(ClientData clientData, Server server);
-    public abstract void runClient(UserDataPacket userInfo, Client client);
+    public abstract void runClient(Client client);
 }

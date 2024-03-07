@@ -140,13 +140,10 @@ public class Server
 
     public void joinChannel(ClientData clientData, int channelId){
 	try{
-	    if(channels.size() >= channelId){
-		clientData.userInfo.setCurrentChannel(channelId);
-		clientData.objectOutputStream.writeObject(new JoinChannelPacket(channelId));
-	    }else{
-		clientData.userInfo.setCurrentChannel(MAIN_CHANNEL);
-		clientData.objectOutputStream.writeObject(new JoinChannelPacket(channelId));
-	    }
+	    if (channels.size() < channelId)
+		channelId = MAIN_CHANNEL;
+	    clientData.userInfo.setCurrentChannel(channelId);
+	    clientData.objectOutputStream.writeObject(new JoinChannelPacket(channelId));
 	}catch (IOException e){
 	    if(!clientData.isConnectionOn) return;
 	    LOGGER.log(Level.WARNING, e.toString(), e);
@@ -162,10 +159,6 @@ public class Server
 
     public List<ChannelData> getChannels() {
 	return channels;
-    }
-
-    public List<Thread> getClientThreads() {
-	return clientThreads;
     }
 
     public List<ClientData> getConnectedClientData() {

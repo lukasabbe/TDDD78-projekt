@@ -18,7 +18,7 @@ public class JoinChannelPacket extends Packet
 	server.joinChannel(clientData, channelId);
     }
 
-    @Override public void runClient(final UserDataPacket userInfo, final Client client) {
+    @Override public void runClient(final Client client) {
 	client.setData(this);
     }
 
