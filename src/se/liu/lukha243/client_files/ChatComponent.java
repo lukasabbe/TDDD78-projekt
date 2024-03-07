@@ -60,11 +60,11 @@ public class ChatComponent extends JPanel implements ChatChangeListener
 	    sendChat.setText("");
 	});
 	loadOldMessages.addActionListener(ignore->{
-	    pointer += Client.DEAFULT_AMOUNT_MESSAGES/2;
+	    pointer += Client.DEFAULT_AMOUNT_MESSAGES / 2;
 	    repaint();
 	});
 	loadNewMessages.addActionListener(ignore->{
-	    pointer -= Client.DEAFULT_AMOUNT_MESSAGES/2;
+	    pointer -= Client.DEFAULT_AMOUNT_MESSAGES / 2;
 	    if(pointer < 0){
 		pointer = 0;
 	    }
@@ -77,7 +77,9 @@ public class ChatComponent extends JPanel implements ChatChangeListener
     @Override
     public Dimension getPreferredSize() {
 	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-	return new Dimension((int)(screenSize.getWidth()/4), ((int)screenSize.getHeight()/2)); //We want the witdh to be a 4 of the screen and the hight to be half
+	int aQuarter = 4;
+	int aHalf = 2;
+	return new Dimension((int)(screenSize.getWidth()/aQuarter), ((int)screenSize.getHeight()/aHalf));
     }
 
     @Override protected void paintComponent(final Graphics g) {
@@ -87,8 +89,9 @@ public class ChatComponent extends JPanel implements ChatChangeListener
     private String generateMessageString(){
 	StringBuilder chatString = new StringBuilder();
 	chatString.append("Chat \n");
-	MessageData[] messageData = client.getMessagesFromServer(pointer, 20);
-	if(messageData == null) return chatString.toString();
+	MessageData[] messageData = client.getMessagesFromServer(pointer, Client.DEFAULT_AMOUNT_MESSAGES);
+	if(messageData == null)
+	    return chatString.toString();
 	for(MessageData message : messageData){
 	    chatString
 		    .append(message.getUserInfo().getUserName())

@@ -8,7 +8,6 @@ import java.io.Serializable;
 public class UserInfo implements Serializable, Packet
 {
     private String userName;
-    private int userId;
 
     private int currentChannel;
 
@@ -55,7 +54,7 @@ public class UserInfo implements Serializable, Packet
      * Handler for request to server
      * @param handler
      */
-    @Override public void dispatchHandler(final PacketHandler handler) {
+    @Override public void trigger(final PacketHandler handler) {
 	handler.handle(this);
     }
 }

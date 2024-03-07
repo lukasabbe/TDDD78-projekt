@@ -5,7 +5,6 @@ import se.liu.lukha243.both.UserInfo;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.logging.Logger;
 
 /**
  * Data used for the server side. Saves client sockets and userinfo

@@ -3,7 +3,8 @@ package se.liu.lukha243.both;
 import java.io.Serializable;
 
 /**
- * Is data for a message in serializable form
+ * Is data for a message in serializable form.
+ * It stores the messages and the sender of the message.
  */
 public class MessageData implements Serializable, Packet
 {
@@ -41,7 +42,7 @@ public class MessageData implements Serializable, Packet
      * @param handler
      */
     @Override
-    public void dispatchHandler(final PacketHandler handler) {
+    public void trigger(final PacketHandler handler) {
 	handler.handle(this);
     }
 }

@@ -8,6 +8,7 @@ import se.liu.lukha243.both.RequestMessagesData;
 import se.liu.lukha243.both.RequestType;
 import se.liu.lukha243.both.UserInfo;
 
+import javax.swing.plaf.synth.SynthUI;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -15,7 +16,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,12 +30,11 @@ public class Client
     /**
      * The deafult amount of messages sent over the socket
      */
-    public static final int DEAFULT_AMOUNT_MESSAGES = 20;
+    public static final int DEFAULT_AMOUNT_MESSAGES = 20;
     private Socket serverSocket;
     private volatile UserInfo userInfo;
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
-    private List<MessageData> messages = new ArrayList<>();
     private List<ChatChangeListener> listeners = new ArrayList<>();
     private boolean isClosed;
     private volatile Object data = null;
@@ -72,10 +71,6 @@ public class Client
 	    Thread receiver = new Thread(new Receiver());
 	    receiver.start();
 	    objectOutputStream.writeObject(userInfo);
-	    MessageData[] oldMessages = getMessagesFromServer(0,20);
-	    if(oldMessages != null){
-		messages.addAll(List.of(oldMessages));
-	    }
 	    notifyAllListeners();
 	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -97,6 +92,7 @@ public class Client
 	    isClosed = true;
 	} catch (IOException e) {
 	   LOGGER.log(Level.SEVERE, e.toString(), e);
+	   System.exit(0); // turn of program if it fails to close down
 	}
     }
 
@@ -125,10 +121,6 @@ public class Client
 	    while (userInfo == null) {
 		Thread.onSpinWait();
 	    }
-	    messages.clear();
-	    MessageData[] channelMessages = getMessagesFromServer(0, 20);
-	    if(channelMessages != null)
-	    	messages.addAll(List.of(channelMessages));
 	    notifyAllListeners();
 	}catch (IOException e){
 	    if(isClosed) return;
@@ -146,16 +138,13 @@ public class Client
 	try {
 	    userInfo = null;
 	    objectOutputStream.writeObject(new Request(RequestType.JOIN_CHANNEL,new int[]{channelId}));
-	    messages.clear();
 	    while (userInfo == null) {
 		Thread.onSpinWait();
 	    }
-	    MessageData[] channelMessages = getMessagesFromServer(0, 20);
-	    if(channelMessages != null)
-		messages.addAll(List.of(channelMessages));
 	    notifyAllListeners();
 	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, e.toString(),e);
+	    LOGGER.log(Level.INFO, "Turning of client");
 	    closeClient();
 	}
     }
@@ -165,8 +154,6 @@ public class Client
      * @param pointer from where to look in all messages
      * @param amount the amount to load
      * @return The messages
-     * @throws IOException
-     * @throws ClassNotFoundException
      */
     public MessageData[] getMessagesFromServer(int pointer, int amount) {
 	try{
@@ -199,7 +186,7 @@ public class Client
 	@Override public void run() {
 	    try {
 		while (true){
-		    ((Packet) objectInputStream.readObject()).dispatchHandler(this);
+		    ((Packet) objectInputStream.readObject()).trigger(this);
 		}
 	    } catch (IOException | ClassNotFoundException e) {
 		if(isClosed) return;

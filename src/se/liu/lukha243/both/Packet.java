@@ -6,5 +6,5 @@ package se.liu.lukha243.both;
  */
 public interface Packet
 {
-    public void dispatchHandler(PacketHandler handler);
+    public void trigger(PacketHandler handler);
 }

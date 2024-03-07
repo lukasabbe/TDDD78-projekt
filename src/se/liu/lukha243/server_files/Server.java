@@ -114,7 +114,7 @@ public class Server
 	    try {
 		while (true){
 		    Packet userRequest = (Packet) clientData.objectInputStream.readObject();
-		    userRequest.dispatchHandler(this);
+		    userRequest.trigger(this);
 		}
 	    } catch (IOException e) {
 		if(!clientData.isConnectionOn) return;

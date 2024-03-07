@@ -22,7 +22,9 @@ public class Gui
     public void open(){
 	frame = new JFrame("Lurres chat");
 	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-	frame.setSize((int)(screenSize.getWidth() / 4), ((int)screenSize.getHeight() / 2)); //We want the witdh to be a 4 of the screen and the hight to be half
+	int aQuarter = 4;
+	int aHalf = 2;
+	frame.setSize((int)(screenSize.getWidth() / aQuarter), ((int)screenSize.getHeight() / aHalf));
 
 	connectToServer();
 	ChatComponent chatComponent = new ChatComponent(client);
@@ -70,11 +72,11 @@ public class Gui
     private JMenuBar createTopMenu(){
 	JMenuBar menuBar = new JMenuBar();
 	JMenu menuFileOptions = new JMenu("Settings");
-	JMenuItem menuItemReconect = new JMenuItem("Reconect",'R');
+	JMenuItem menuItemReconnect = new JMenuItem("Reconnect",'R');
 	JMenuItem menuItemQuit = new JMenuItem("Exit",'E');
-	menuItemReconect.addActionListener(igonore -> reconnect());
+	menuItemReconnect.addActionListener(igonore -> reconnect());
 	menuItemQuit.addActionListener(igonre -> close());
-	menuFileOptions.add(menuItemReconect);
+	menuFileOptions.add(menuItemReconnect);
 	menuFileOptions.add(menuItemQuit);
 	JMenu menuFileConnection = new JMenu("View");
 	JMenuItem menuItemJoinChannel = new JMenuItem("Join channel");
