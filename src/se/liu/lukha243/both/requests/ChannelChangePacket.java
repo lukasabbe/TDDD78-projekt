@@ -7,7 +7,7 @@ import se.liu.lukha243.server_files.ClientData;
 import se.liu.lukha243.server_files.Server;
 
 /**
- * Send an channel request to the server
+ * Send an channel request to the server. To uppdate the channels propetys like changing its password or if its locked
  */
 public class ChannelChangePacket extends Packet
 {

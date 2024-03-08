@@ -49,8 +49,7 @@ public class Client
      * @throws UnknownHostException
      */
     public Client(String ip, int port) throws IOException, UnknownHostException {
-	InetAddress inetAddress = InetAddress.getByName(ip);
-	serverSocket = new Socket(inetAddress.getHostAddress(), port);
+	serverSocket = new Socket(ip, port);
 	OutputStream outputStream = serverSocket.getOutputStream();
 	objectOutputStream = new ObjectOutputStream(outputStream);
 	objectInputStream = new ObjectInputStream(serverSocket.getInputStream());

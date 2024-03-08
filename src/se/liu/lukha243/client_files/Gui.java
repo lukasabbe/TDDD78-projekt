@@ -103,7 +103,6 @@ public class Gui implements ChatChangeListener
 	menuFileConnection.add(menuItemCreateChannel);
 	menuBar.add(menuFileOptions);
 	menuBar.add(menuFileConnection);
-	System.out.println(client.getUserInfo().isOwner(client.getUserInfo().getCurrentChannel()));
 	if(client.getUserInfo().isOwner(client.getUserInfo().getCurrentChannel())){
 	    JMenu channelOwnerMenu = new JMenu("Channel");
 	    JMenuItem setPasswordItem = new JMenuItem("Set password");
@@ -114,7 +113,7 @@ public class Gui implements ChatChangeListener
 	    JMenuItem lockItem = new JMenuItem("lock channel");
 	    lockItem.addActionListener(l -> client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, true));
 	    JMenuItem unlockItem = new JMenuItem("unlock channel");
-	    unlockItem.addActionListener(l -> client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, true));
+	    unlockItem.addActionListener(l -> client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, false));
 	    channelOwnerMenu.add(setPasswordItem);
 	    channelOwnerMenu.add(lockItem);
 	    channelOwnerMenu.add(unlockItem);
@@ -125,7 +124,7 @@ public class Gui implements ChatChangeListener
     }
 
     @Override public void chatChange() {
-	chatComponent.getMessagePackets();
+	chatComponent.requestMessagePackets();
 	chatComponent.repaint();
     }
 

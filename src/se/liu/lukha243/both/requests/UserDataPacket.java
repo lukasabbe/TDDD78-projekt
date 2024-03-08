@@ -5,10 +5,6 @@ import se.liu.lukha243.client_files.Client;
 import se.liu.lukha243.server_files.ClientData;
 import se.liu.lukha243.server_files.Server;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * The user data pcket. Its when the server has uppdated the user object. Like changed name or channel
  */
@@ -88,8 +84,8 @@ public class UserDataPacket extends Packet
         ownedChannls = newOwnedChannels;
     }
     public boolean isOwner(int channelId){
-        for(int owndChannel : ownedChannls){
-            if(owndChannel == channelId) return true;
+        for(int ownedChannel : ownedChannls){
+            if(ownedChannel == channelId) return true;
         }
         return false;
     }

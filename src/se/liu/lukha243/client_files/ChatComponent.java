@@ -6,7 +6,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.util.Arrays;
 
 /**
  * An JPanel commponment for the the GUI. It is used for displaying a chat GUI
@@ -109,7 +108,7 @@ public class ChatComponent extends JPanel
 	return sendButton;
     }
 
-    public void getMessagePackets(){
+    public void requestMessagePackets(){
 	messagePackets = client.getMessagesFromServer(pointer, Client.DEFAULT_AMOUNT_MESSAGES);
     }
 }

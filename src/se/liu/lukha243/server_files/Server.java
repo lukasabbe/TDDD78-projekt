@@ -124,7 +124,7 @@ public class Server
 	    int newChannel = createChannelId();
 	    clientData.userInfo.setCurrentChannel(newChannel);
 	    clientData.userInfo.addNewChannelOwnerShip(newChannel);
-	    final ChannelData channelData = new ChannelData(newChannel, clientData.userInfo);
+	    final ChannelData channelData = new ChannelData(newChannel);
 	    channelData.setLocked(false);
 	    channels.add(channelData);
 	    System.out.println(clientData.userInfo.isOwner(newChannel));

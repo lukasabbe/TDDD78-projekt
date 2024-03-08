@@ -14,7 +14,6 @@ import java.util.List;
 public class ChannelData implements Serializable
 {
     private final int id;
-    private UserDataPacket client = null;
     private List<MessagePacket> messages = new ArrayList<>();
     private String passsword = "";
     private boolean locked = false;
@@ -27,10 +26,6 @@ public class ChannelData implements Serializable
 	this.id = id;
     }
 
-    public ChannelData(int id, UserDataPacket userInfo){
-	this.id = id;
-	this.client = userInfo;
-    }
 
     /**
      * Add a message to the channel. It will be saved here
@@ -48,18 +43,19 @@ public class ChannelData implements Serializable
     public MessagePacket[] getMessage(RequestOldMessagesPacket requestMessagesData){
 	int pointer = requestMessagesData.getPointer();
 	int amount = requestMessagesData.getAmount();
-	if(this.messages.isEmpty() || this.messages.size() < pointer){
+	final int size = this.messages.size();
+	if(this.messages.isEmpty() || size < pointer){
 	    return null;
 	}
-	if(this.messages.size() < amount){
-	     amount = this.messages.size();
+	if(size < amount){
+	     amount = size;
 	}
-	if(this.messages.size() < amount+pointer){
-	    amount = this.messages.size() - pointer;
+	if(size < amount + pointer){
+	    amount = size - pointer;
 	}
 	MessagePacket[] messages = new MessagePacket[amount];
 	int amountCounter = amount-1;
-	for(int i = this.messages.size()-pointer-1; i >= this.messages.size()-(amount+pointer); i--){
+	for(int i = size - pointer - 1; i >= size - (amount + pointer); i--){
 	    messages[amountCounter] = this.messages.get(i);
 	    amountCounter--;
 	}
@@ -78,5 +74,9 @@ public class ChannelData implements Serializable
     }
     public void setLocked(final boolean locked) {
 	this.locked = locked;
+    }
+
+    public int getId() {
+	return id;
     }
 }

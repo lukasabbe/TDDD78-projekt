@@ -11,33 +11,25 @@ import se.liu.lukha243.server_files.Server;
 public class JoinChannelPacket extends Packet
 {
     private int channelId;
-    private String passWordAttempt = "";
+    private String passwordAttempt = "";
     private boolean hasJoined = true;
     public JoinChannelPacket(int channelId){
 	this.channelId = channelId;
     }
-    public JoinChannelPacket(int channelId, String passWordAttempt){
+    public JoinChannelPacket(int channelId, String passwordAttempt){
 	this.channelId = channelId;
-	this.passWordAttempt = passWordAttempt;
+	this.passwordAttempt = passwordAttempt;
     }
     public JoinChannelPacket(int channelId, boolean hasJoined){
 	this.channelId = channelId;
 	this.hasJoined = hasJoined;
     }
     @Override public void runServer(final ClientData clientData, final Server server) {
-	server.joinChannel(clientData, channelId,passWordAttempt);
+	server.joinChannel(clientData, channelId, passwordAttempt);
     }
 
     @Override public void runClient(final Client client) {
 	client.setData(this);
-    }
-
-    public int getChannelId() {
-	return channelId;
-    }
-
-    public String getPassWordAttempt() {
-	return passWordAttempt;
     }
 
     public boolean hasJoined() {
