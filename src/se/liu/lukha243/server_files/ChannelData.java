@@ -17,15 +17,17 @@ public class ChannelData implements Serializable
     private List<MessagePacket> messages = new ArrayList<>();
     private String passsword = "";
     private boolean locked = false;
+    private UserDataPacket ownerUser = null;
 
     /**
      * Creates a new channel data object
      * @param id id of channel
+     * @param ownerUser the owner of the channel
      */
-    public ChannelData(int id) {
+    public ChannelData(int id, UserDataPacket ownerUser){
 	this.id = id;
+	this.ownerUser = ownerUser;
     }
-
 
     /**
      * Add a message to the channel. It will be saved here
@@ -78,5 +80,9 @@ public class ChannelData implements Serializable
 
     public int getId() {
 	return id;
+    }
+
+    public UserDataPacket getOwnerUser() {
+	return ownerUser;
     }
 }

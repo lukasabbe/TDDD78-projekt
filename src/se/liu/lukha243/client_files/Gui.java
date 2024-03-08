@@ -1,9 +1,12 @@
 package se.liu.lukha243.client_files;
 
+import se.liu.lukha243.both.requests.UserDataPacket;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,6 +90,10 @@ public class Gui implements ChatChangeListener
 	JMenu menuFileConnection = new JMenu("View");
 	JMenuItem menuItemJoinChannel = new JMenuItem("Join channel");
 	JMenuItem menuItemCreateChannel = new JMenuItem("Create channel");
+	JMenuItem menuItemGetAllChannels = new JMenuItem("Display all channels");
+	JPanel allChannelsPane = new JPanel();
+	menuItemGetAllChannels.addActionListener(ignore -> JOptionPane.showMessageDialog(allChannelsPane,client.getAllChannels()));
+
 	menuItemCreateChannel.addActionListener(igonore -> client.createChannel());
 	menuItemJoinChannel.addActionListener(igonore -> {
 	    while (true){
@@ -101,6 +108,7 @@ public class Gui implements ChatChangeListener
 	});
 	menuFileConnection.add(menuItemJoinChannel);
 	menuFileConnection.add(menuItemCreateChannel);
+	menuFileConnection.add(menuItemGetAllChannels);
 	menuBar.add(menuFileOptions);
 	menuBar.add(menuFileConnection);
 	if(client.getUserInfo().isOwner(client.getUserInfo().getCurrentChannel())){
@@ -111,16 +119,48 @@ public class Gui implements ChatChangeListener
 		client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, currentChannelLocked);
 	    });
 	    JMenuItem lockItem = new JMenuItem("lock channel");
-	    lockItem.addActionListener(l -> client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, true));
+	    lockItem.addActionListener(l -> {
+		currentChannelLocked = true;
+		client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, true);
+	    });
 	    JMenuItem unlockItem = new JMenuItem("unlock channel");
-	    unlockItem.addActionListener(l -> client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, false));
+	    unlockItem.addActionListener(l -> {
+		currentChannelLocked = false;
+		client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, false);
+	    });
+
+	    JMenuItem menuItemShowAllUsers = new JMenuItem("all users");
+
+	    menuItemShowAllUsers.addActionListener(ignore ->openUserMenu());
+
 	    channelOwnerMenu.add(setPasswordItem);
 	    channelOwnerMenu.add(lockItem);
 	    channelOwnerMenu.add(unlockItem);
+	    channelOwnerMenu.add(menuItemShowAllUsers);
 	    menuBar.add(channelOwnerMenu);
 	}
 
 	return menuBar;
+    }
+
+    public void openUserMenu(){
+	JPanel userMenuPane = new JPanel();
+	userMenuPane.setSize(100,200);
+	userMenuPane.setLayout(new BorderLayout());
+	List<UserDataPacket> users = client.getAllUsers(client.getUserInfo().getCurrentChannel());
+	for(UserDataPacket user : users){
+	    JPanel userPanel = new JPanel();
+	    userPanel.setLayout(new BorderLayout());
+	    JTextField username = new JTextField(user.getUserName());
+	    JButton kickBtn = new JButton("kick");
+	    userPanel.add(username,BorderLayout.WEST);
+	    userPanel.add(kickBtn, BorderLayout.EAST);
+	    userMenuPane.add(userPanel,BorderLayout.NORTH);
+	}
+	Frame popUpframe = new JFrame();
+	popUpframe.add(userMenuPane);
+	popUpframe.pack();
+	popUpframe.setVisible(true);
     }
 
     @Override public void chatChange() {
@@ -133,4 +173,5 @@ public class Gui implements ChatChangeListener
 	frame.pack();
 	frame.setVisible(true);
     }
+
 }

@@ -4,17 +4,19 @@ import se.liu.lukha243.both.Packet;
 import se.liu.lukha243.both.requests.ChannelChangePacket;
 import se.liu.lukha243.both.requests.CreateNewChannelPacket;
 import se.liu.lukha243.both.requests.DisconnectPacket;
+import se.liu.lukha243.both.requests.GetCurrentUsersPacket;
 import se.liu.lukha243.both.requests.JoinChannelPacket;
+import se.liu.lukha243.both.requests.ListOfChannelsPacket;
 import se.liu.lukha243.both.requests.MessagePacket;
 import se.liu.lukha243.both.requests.RequestOldMessagesPacket;
 import se.liu.lukha243.both.requests.UserDataPacket;
+import se.liu.lukha243.logg_files.MyLogger;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ public class Client
      * The deafult amount of messages sent over the socket
      */
     public static final int DEFAULT_AMOUNT_MESSAGES = 20;
+    private static final boolean IS_LOGGIN_ON = true;
     private Socket serverSocket;
     private volatile UserDataPacket userInfo;
     private ObjectOutputStream objectOutputStream;
@@ -49,6 +52,8 @@ public class Client
      * @throws UnknownHostException
      */
     public Client(String ip, int port) throws IOException, UnknownHostException {
+	if(IS_LOGGIN_ON)
+		MyLogger.initLogger();
 	serverSocket = new Socket(ip, port);
 	OutputStream outputStream = serverSocket.getOutputStream();
 	objectOutputStream = new ObjectOutputStream(outputStream);
@@ -141,20 +146,14 @@ public class Client
 	try {
 	    objectOutputStream.writeObject(new JoinChannelPacket(channelId));
 	    while (true){
-		System.out.println("6");
 		while (data == null) {
 		    Thread.onSpinWait();
 		}
 		final JoinChannelPacket joinChannelPacket = (JoinChannelPacket) data;
-		System.out.println("5");
 		if(joinChannelPacket.hasJoined()) {
-		    System.out.println("1");
 		    data = null;
-		    System.out.println("2");
 		    notifyAllMessageListeners();
-		    System.out.println("3");
 		    notifyAllChannelListeners();
-		    System.out.println("4");
 		    break;
 		}else{
 		    data = null;
@@ -171,6 +170,12 @@ public class Client
 	}
     }
 
+    /**
+     * Set data for an channel.
+     * @param channelId the channel id you want to set to
+     * @param password password you want to set
+     * @param lockedMode if you want the channel to be locked
+     */
     public void setChannelData(int channelId, String password, boolean lockedMode){
 	try{
 	    objectOutputStream.writeObject(new ChannelChangePacket(channelId, password, lockedMode));
@@ -179,6 +184,27 @@ public class Client
 	    LOGGER.log(Level.INFO, "Turning of client");
 	    closeClient();
 	}
+    }
+
+    /**
+     * Get all channels in a string formated style
+     * @return
+     */
+    public String getAllChannels(){
+	try{
+	    objectOutputStream.writeObject(new ListOfChannelsPacket());
+	    while (data == null){
+		Thread.onSpinWait();
+	    }
+	    String allChannelString = ((ListOfChannelsPacket)data).getFormatedChannelString();
+	    data = null;
+	    return allChannelString;
+	}catch (IOException e){
+	    LOGGER.log(Level.SEVERE, e.toString(),e);
+	    LOGGER.log(Level.INFO, "Turning of client");
+	    closeClient();
+	}
+	return "";
     }
 
     /**
@@ -204,7 +230,22 @@ public class Client
 	}
 	return null;
     }
-
+    public List<UserDataPacket> getAllUsers(int channelId){
+	try{
+	    objectOutputStream.writeObject(new GetCurrentUsersPacket());
+	    while (data == null) {
+		Thread.onSpinWait();
+	    }
+	    final List<UserDataPacket> returnData = ((GetCurrentUsersPacket) data).getUserDataPacketList();
+	    data = null;
+	    return returnData;
+	}catch (IOException e){
+	    LOGGER.log(Level.SEVERE, e.toString(), e);
+	    LOGGER.log(Level.INFO, "Turning of client");
+	    closeClient();
+	}
+	return null;
+    }
     /**
      * Addes a new Listener. Runs whenever a the chat gets a new message
      * @param listener The listener you want to be called

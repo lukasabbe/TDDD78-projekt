@@ -3,6 +3,7 @@ package se.liu.lukha243.server_files;
 import se.liu.lukha243.both.requests.JoinChannelPacket;
 import se.liu.lukha243.both.requests.MessagePacket;
 import se.liu.lukha243.both.requests.UserDataPacket;
+import se.liu.lukha243.logg_files.MyLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +25,7 @@ public class Server
 {
     private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
     private static final int MAIN_CHANNEL = 0;
+    private static final boolean IS_LOGGIN_ON = true;
     private ServerSocket serverSocket;
     private List<ChannelData> channels = new ArrayList<>();
     private int currentChannelId = 0;
@@ -33,11 +35,15 @@ public class Server
 
     private Thread serverThread = null;
 
+    private UserDataPacket serverUser = new UserDataPacket("[SERVER]");
+
     /**
      * Creates the server object
      * @param port the port you want the server to run on
      */
     public Server (int port) throws IOException{
+	if(IS_LOGGIN_ON)
+	    MyLogger.initLogger();
 	this.serverSocket = new ServerSocket(port);
     }
 
@@ -46,7 +52,7 @@ public class Server
      */
     public void startServer(){
 	Runtime.getRuntime().addShutdownHook(new Thread(this::closeServer));
-	channels.add(new ChannelData(createChannelId()));
+	channels.add(new ChannelData(createChannelId(),serverUser));
 	serverThread = new Thread(new Connector(this));
 	serverThread.start();
 	System.out.println("Server truned on!");
@@ -124,7 +130,7 @@ public class Server
 	    int newChannel = createChannelId();
 	    clientData.userInfo.setCurrentChannel(newChannel);
 	    clientData.userInfo.addNewChannelOwnerShip(newChannel);
-	    final ChannelData channelData = new ChannelData(newChannel);
+	    final ChannelData channelData = new ChannelData(newChannel,clientData.userInfo);
 	    channelData.setLocked(false);
 	    channels.add(channelData);
 	    System.out.println(clientData.userInfo.isOwner(newChannel));
@@ -148,7 +154,8 @@ public class Server
 		channelId = MAIN_CHANNEL;
 	    final ChannelData channelData = channels.get(channelId);
 	    if(channelData.isLocked()){
-		if(!channelData.getPasssword().equals(password))
+		System.out.println(clientData.userInfo.isOwner(channelId));
+		if(!channelData.getPasssword().equals(password) && !clientData.userInfo.isOwner(channelId))
 		    clientData.objectOutputStream.writeObject(new JoinChannelPacket(channelId,false));
 		else{
 		    clientData.userInfo.setCurrentChannel(channelId);
