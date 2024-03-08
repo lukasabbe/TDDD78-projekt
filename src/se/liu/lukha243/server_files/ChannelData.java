@@ -16,6 +16,8 @@ public class ChannelData implements Serializable
     private final int id;
     private UserDataPacket client = null;
     private List<MessagePacket> messages = new ArrayList<>();
+    private String passsword = "";
+    private boolean locked = false;
 
     /**
      * Creates a new channel data object
@@ -64,4 +66,17 @@ public class ChannelData implements Serializable
 	return messages;
     }
 
+    public String getPasssword() {
+	return passsword;
+    }
+    public void setPasssword(String passsword){
+	this.passsword = passsword;
+    }
+
+    public boolean isLocked() {
+	return locked;
+    }
+    public void setLocked(final boolean locked) {
+	this.locked = locked;
+    }
 }

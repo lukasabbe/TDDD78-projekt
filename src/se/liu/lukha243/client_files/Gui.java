@@ -10,11 +10,16 @@ import java.util.logging.Logger;
 /**
  * Its a GUI for the chat. It interacts with the client and uses its functions
  */
-public class Gui
+public class Gui implements ChatChangeListener
 {
     private static final Logger LOGGER = Logger.getLogger(Gui.class.getName());
     private JFrame frame = null;
     private Client client = null;
+    private ChatComponent chatComponent = null;
+
+    private boolean currentChannelLocked = false;
+
+    private String currentPassword = "";
 
     /**
      * Open GUI frame
@@ -27,14 +32,15 @@ public class Gui
 	frame.setSize((int)(screenSize.getWidth() / aQuarter), ((int)screenSize.getHeight() / aHalf));
 
 	connectToServer();
-	ChatComponent chatComponent = new ChatComponent(client);
+	chatComponent = new ChatComponent(client);
 	frame.getRootPane().setDefaultButton(chatComponent.getSendButton());
-	client.addChatChangeListener(chatComponent);
+	client.addChatChangeListener(this);
 	frame.setLayout(new BorderLayout());
 	frame.add(chatComponent, BorderLayout.CENTER);
 	frame.pack();
 	frame.setJMenuBar(createTopMenu());
 	frame.setVisible(true);
+	client.notifyAllMessageListeners();
     }
     private void close(){
 	frame.dispose();
@@ -97,7 +103,35 @@ public class Gui
 	menuFileConnection.add(menuItemCreateChannel);
 	menuBar.add(menuFileOptions);
 	menuBar.add(menuFileConnection);
+	System.out.println(client.getUserInfo().isOwner(client.getUserInfo().getCurrentChannel()));
+	if(client.getUserInfo().isOwner(client.getUserInfo().getCurrentChannel())){
+	    JMenu channelOwnerMenu = new JMenu("Channel");
+	    JMenuItem setPasswordItem = new JMenuItem("Set password");
+	    setPasswordItem.addActionListener(l -> {
+		currentPassword = JOptionPane.showInputDialog("Skriv in ditt lössen");
+		client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, currentChannelLocked);
+	    });
+	    JMenuItem lockItem = new JMenuItem("lock channel");
+	    lockItem.addActionListener(l -> client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, true));
+	    JMenuItem unlockItem = new JMenuItem("unlock channel");
+	    unlockItem.addActionListener(l -> client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, true));
+	    channelOwnerMenu.add(setPasswordItem);
+	    channelOwnerMenu.add(lockItem);
+	    channelOwnerMenu.add(unlockItem);
+	    menuBar.add(channelOwnerMenu);
+	}
+
 	return menuBar;
     }
 
+    @Override public void chatChange() {
+	chatComponent.getMessagePackets();
+	chatComponent.repaint();
+    }
+
+    @Override public void channelChange() {
+	frame.setJMenuBar(createTopMenu());
+	frame.pack();
+	frame.setVisible(true);
+    }
 }

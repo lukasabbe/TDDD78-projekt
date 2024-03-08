@@ -6,11 +6,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.Arrays;
 
 /**
  * An JPanel commponment for the the GUI. It is used for displaying a chat GUI
  */
-public class ChatComponent extends JPanel implements ChatChangeListener
+public class ChatComponent extends JPanel
 {
     private Client client;
     private JTextArea textArea;
@@ -18,6 +19,9 @@ public class ChatComponent extends JPanel implements ChatChangeListener
     private JButton sendButton;
     private int pointer = 0;
     private boolean hasFocus = false;
+
+    private MessagePacket[] messagePackets = null;
+
     public ChatComponent(Client client){
 	this.client = client;
 	textArea = new JTextArea();
@@ -61,14 +65,14 @@ public class ChatComponent extends JPanel implements ChatChangeListener
 	});
 	loadOldMessages.addActionListener(ignore->{
 	    pointer += Client.DEFAULT_AMOUNT_MESSAGES / 2;
-	    repaint();
+	    client.notifyAllMessageListeners();
 	});
 	loadNewMessages.addActionListener(ignore->{
 	    pointer -= Client.DEFAULT_AMOUNT_MESSAGES / 2;
 	    if(pointer < 0){
 		pointer = 0;
 	    }
-	    repaint();
+	    client.notifyAllMessageListeners();
 	});
 
 
@@ -89,10 +93,9 @@ public class ChatComponent extends JPanel implements ChatChangeListener
     private String generateMessageString(){
 	StringBuilder chatString = new StringBuilder();
 	chatString.append("Chat \n");
-	MessagePacket[] messageData = client.getMessagesFromServer(pointer, Client.DEFAULT_AMOUNT_MESSAGES);
-	if(messageData == null)
+	if(messagePackets == null)
 	    return chatString.toString();
-	for(MessagePacket message : messageData){
+	for(MessagePacket message : messagePackets){
 	    chatString
 		    .append(message.getUserInfo().getUserName())
 		    .append(" : ")
@@ -102,12 +105,11 @@ public class ChatComponent extends JPanel implements ChatChangeListener
 	return chatString.toString();
     }
 
-    @Override
-    public void chatChange() {
-	repaint();
-    }
-
     public JButton getSendButton(){
 	return sendButton;
+    }
+
+    public void getMessagePackets(){
+	messagePackets = client.getMessagesFromServer(pointer, Client.DEFAULT_AMOUNT_MESSAGES);
     }
 }

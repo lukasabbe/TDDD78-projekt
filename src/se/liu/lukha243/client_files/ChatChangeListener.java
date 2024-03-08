@@ -7,4 +7,5 @@ package se.liu.lukha243.client_files;
 public interface ChatChangeListener
 {
     public void chatChange();
+    public void channelChange();
 }

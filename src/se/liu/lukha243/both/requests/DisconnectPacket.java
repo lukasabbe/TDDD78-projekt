@@ -16,6 +16,5 @@ public class DisconnectPacket extends Packet
     }
 
     @Override public void runClient(final Client client) {
-
     }
 }

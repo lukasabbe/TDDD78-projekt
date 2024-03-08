@@ -18,6 +18,5 @@ public class CreateNewChannelPacket extends Packet
     }
 
     @Override public void runClient(final Client client) {
-
     }
 }

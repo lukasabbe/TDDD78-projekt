@@ -123,8 +123,12 @@ public class Server
 	try {
 	    int newChannel = createChannelId();
 	    clientData.userInfo.setCurrentChannel(newChannel);
-	    channels.add(new ChannelData(newChannel, clientData.userInfo));
-	    clientData.objectOutputStream.writeObject(clientData.userInfo);
+	    clientData.userInfo.addNewChannelOwnerShip(newChannel);
+	    final ChannelData channelData = new ChannelData(newChannel, clientData.userInfo);
+	    channelData.setLocked(false);
+	    channels.add(channelData);
+	    System.out.println(clientData.userInfo.isOwner(newChannel));
+	    clientData.objectOutputStream.writeObject(new UserDataPacket(clientData.userInfo));
 	    final MessagePacket
 		    serverMessage = new MessagePacket("Vällkomen till din nya chat\nID:" + newChannel + ". Andra kan joina med det ID:t",
 						    new UserDataPacket("[SERVER]"));
@@ -138,12 +142,24 @@ public class Server
 
     }
 
-    public void joinChannel(ClientData clientData, int channelId){
+    public void joinChannel(ClientData clientData, int channelId, String password){
 	try{
-	    if (channels.size() < channelId)
+	    if (channels.size() <= channelId)
 		channelId = MAIN_CHANNEL;
-	    clientData.userInfo.setCurrentChannel(channelId);
-	    clientData.objectOutputStream.writeObject(new JoinChannelPacket(channelId));
+	    final ChannelData channelData = channels.get(channelId);
+	    if(channelData.isLocked()){
+		if(!channelData.getPasssword().equals(password))
+		    clientData.objectOutputStream.writeObject(new JoinChannelPacket(channelId,false));
+		else{
+		    clientData.userInfo.setCurrentChannel(channelId);
+		    clientData.objectOutputStream.writeObject(new JoinChannelPacket(channelId,true));
+		    clientData.objectOutputStream.writeObject(new UserDataPacket(clientData.userInfo));
+		}
+	    }else{
+		clientData.userInfo.setCurrentChannel(channelId);
+		clientData.objectOutputStream.writeObject(new JoinChannelPacket(channelId));
+		clientData.objectOutputStream.writeObject(new UserDataPacket(clientData.userInfo));
+	    }
 	}catch (IOException e){
 	    if(!clientData.isConnectionOn) return;
 	    LOGGER.log(Level.WARNING, e.toString(), e);
@@ -160,7 +176,9 @@ public class Server
     public List<ChannelData> getChannels() {
 	return channels;
     }
-
+    public void setChannel(int index, ChannelData channelData){
+	channels.set(index,channelData);
+    }
     public List<ClientData> getConnectedClientData() {
 	return connectedClientData;
     }

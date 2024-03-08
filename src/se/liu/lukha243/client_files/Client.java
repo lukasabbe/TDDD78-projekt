@@ -1,6 +1,7 @@
 package se.liu.lukha243.client_files;
 
 import se.liu.lukha243.both.Packet;
+import se.liu.lukha243.both.requests.ChannelChangePacket;
 import se.liu.lukha243.both.requests.CreateNewChannelPacket;
 import se.liu.lukha243.both.requests.DisconnectPacket;
 import se.liu.lukha243.both.requests.JoinChannelPacket;
@@ -8,10 +9,12 @@ import se.liu.lukha243.both.requests.MessagePacket;
 import se.liu.lukha243.both.requests.RequestOldMessagesPacket;
 import se.liu.lukha243.both.requests.UserDataPacket;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -46,7 +49,8 @@ public class Client
      * @throws UnknownHostException
      */
     public Client(String ip, int port) throws IOException, UnknownHostException {
-	serverSocket = new Socket(ip, port);
+	InetAddress inetAddress = InetAddress.getByName(ip);
+	serverSocket = new Socket(inetAddress.getHostAddress(), port);
 	OutputStream outputStream = serverSocket.getOutputStream();
 	objectOutputStream = new ObjectOutputStream(outputStream);
 	objectInputStream = new ObjectInputStream(serverSocket.getInputStream());
@@ -70,7 +74,7 @@ public class Client
 	    Thread receiver = new Thread(new Receiver(this));
 	    receiver.start();
 	    objectOutputStream.writeObject(userInfo);
-	    notifyAllListeners();
+	    notifyAllMessageListeners();
 	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
 	    LOGGER.log(Level.INFO, "Turning of client socket");
@@ -120,7 +124,8 @@ public class Client
 	    while (userInfo == null) {
 		Thread.onSpinWait();
 	    }
-	    notifyAllListeners();
+	    notifyAllMessageListeners();
+	    notifyAllChannelListeners();
 	}catch (IOException e){
 	    if(isClosed) return;
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -136,13 +141,41 @@ public class Client
     public void joinChannel(int channelId){
 	try {
 	    objectOutputStream.writeObject(new JoinChannelPacket(channelId));
-	    while (data == null) {
-		Thread.onSpinWait();
+	    while (true){
+		System.out.println("6");
+		while (data == null) {
+		    Thread.onSpinWait();
+		}
+		final JoinChannelPacket joinChannelPacket = (JoinChannelPacket) data;
+		System.out.println("5");
+		if(joinChannelPacket.hasJoined()) {
+		    System.out.println("1");
+		    data = null;
+		    System.out.println("2");
+		    notifyAllMessageListeners();
+		    System.out.println("3");
+		    notifyAllChannelListeners();
+		    System.out.println("4");
+		    break;
+		}else{
+		    data = null;
+		    String passwordAttempt = JOptionPane.showInputDialog("This channel needs an password! Enter one");
+		    if(passwordAttempt == null)
+			return;
+		    objectOutputStream.writeObject(new JoinChannelPacket(channelId, passwordAttempt));
+		}
 	    }
-	    userInfo.setCurrentChannel(((JoinChannelPacket)data).getChannelId());
-	    data = null;
-	    notifyAllListeners();
 	} catch (IOException e) {
+	    LOGGER.log(Level.SEVERE, e.toString(),e);
+	    LOGGER.log(Level.INFO, "Turning of client");
+	    closeClient();
+	}
+    }
+
+    public void setChannelData(int channelId, String password, boolean lockedMode){
+	try{
+	    objectOutputStream.writeObject(new ChannelChangePacket(channelId, password, lockedMode));
+	}catch (IOException e){
 	    LOGGER.log(Level.SEVERE, e.toString(),e);
 	    LOGGER.log(Level.INFO, "Turning of client");
 	    closeClient();
@@ -161,9 +194,9 @@ public class Client
 	    while (data == null) {
 		Thread.onSpinWait();
 	    }
-	    Object copyData = data;
+	    final MessagePacket[] returnData = ((RequestOldMessagesPacket) data).getReturnData();
 	    data = null;
-	    return ((RequestOldMessagesPacket) copyData).getReturnData();
+	    return returnData;
 	}catch (IOException e){
 	    if(isClosed) return null;
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -190,7 +223,8 @@ public class Client
 	@Override public void run() {
 	    try {
 		while (true){
-		    ((Packet) objectInputStream.readObject()).runClient(client);
+		    final Packet packet = (Packet) objectInputStream.readObject();
+		    packet.runClient(client);
 		}
 	    } catch (IOException | ClassNotFoundException e) {
 		if(isClosed) return;
@@ -202,10 +236,16 @@ public class Client
     }
 
     /**
+     * Notifyes all listenrs to a new message
+     */
+    public void notifyAllMessageListeners(){
+	listeners.forEach(ChatChangeListener :: chatChange);
+    }
+    /**
      * Notifyes all listenrs to uppdate chat
      */
-    public void notifyAllListeners(){
-	listeners.forEach(ChatChangeListener :: chatChange);
+    public void notifyAllChannelListeners(){
+	listeners.forEach(ChatChangeListener :: channelChange);
     }
 
     /**
@@ -222,6 +262,14 @@ public class Client
      */
     public void setUserInfo(final UserDataPacket userInfo) {
 	this.userInfo = userInfo;
+    }
+
+    /**
+     * Gets user data
+     * @return
+     */
+    public UserDataPacket getUserInfo() {
+	return userInfo;
     }
 }
 

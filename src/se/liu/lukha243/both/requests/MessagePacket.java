@@ -39,7 +39,7 @@ public class MessagePacket extends Packet
     }
 
     @Override public void runClient(final Client client) {
-	client.notifyAllListeners();
+	new Thread(client::notifyAllMessageListeners).start();
     }
 
     public String getMessage() {
