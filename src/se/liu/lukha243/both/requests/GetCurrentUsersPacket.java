@@ -30,7 +30,7 @@ public class GetCurrentUsersPacket extends Packet
 	    final List<ClientData> connectedClientData = server.getConnectedClientData();
 	    final List<UserDataPacket> users = connectedClientData.stream()
 		    .filter(user -> user.userInfo.getCurrentChannel() == clientData.userInfo.getCurrentChannel())
-		    .map(clientData1 -> clientData.userInfo)
+		    .map(clientData1 -> clientData1.userInfo)
 		    .toList();
 	    final GetCurrentUsersPacket obj = new GetCurrentUsersPacket(users);
 	    clientData.objectOutputStream.writeObject(obj);

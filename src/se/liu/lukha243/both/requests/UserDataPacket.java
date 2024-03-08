@@ -16,6 +16,8 @@ public class UserDataPacket extends Packet
 
     private int[] ownedChannls = null;
 
+    private int id;
+
     @Override public void runServer(final ClientData clientData, final Server server) {
 
     }
@@ -31,10 +33,16 @@ public class UserDataPacket extends Packet
 	this.userName = userName;
         this.ownedChannls = new int[0];
     }
+    public UserDataPacket(final String userName, int id) {
+        this.userName = userName;
+        this.ownedChannls = new int[0];
+        this.id = id;
+    }
     public UserDataPacket(UserDataPacket userDataPacket){
         this.userName = userDataPacket.userName;
         this.currentChannel = userDataPacket.currentChannel;
         this.ownedChannls = userDataPacket.ownedChannls;
+        this.id = userDataPacket.id;
     }
 
     /**
@@ -90,4 +98,11 @@ public class UserDataPacket extends Packet
         return false;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(final int id) {
+        this.id = id;
+    }
 }

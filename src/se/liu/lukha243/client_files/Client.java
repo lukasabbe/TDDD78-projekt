@@ -6,6 +6,7 @@ import se.liu.lukha243.both.requests.CreateNewChannelPacket;
 import se.liu.lukha243.both.requests.DisconnectPacket;
 import se.liu.lukha243.both.requests.GetCurrentUsersPacket;
 import se.liu.lukha243.both.requests.JoinChannelPacket;
+import se.liu.lukha243.both.requests.KickRequestPacket;
 import se.liu.lukha243.both.requests.ListOfChannelsPacket;
 import se.liu.lukha243.both.requests.MessagePacket;
 import se.liu.lukha243.both.requests.RequestOldMessagesPacket;
@@ -125,7 +126,7 @@ public class Client
 	try{
 	    userInfo = null;
 	    objectOutputStream.writeObject(new CreateNewChannelPacket());
-	    while (userInfo == null) {
+	    while (userInfo == null){
 		Thread.onSpinWait();
 	    }
 	    notifyAllMessageListeners();
@@ -146,17 +147,12 @@ public class Client
 	try {
 	    objectOutputStream.writeObject(new JoinChannelPacket(channelId));
 	    while (true){
-		while (data == null) {
-		    Thread.onSpinWait();
-		}
-		final JoinChannelPacket joinChannelPacket = (JoinChannelPacket) data;
+		final JoinChannelPacket joinChannelPacket = getDataFromServer();
 		if(joinChannelPacket.hasJoined()) {
-		    data = null;
 		    notifyAllMessageListeners();
 		    notifyAllChannelListeners();
 		    break;
 		}else{
-		    data = null;
 		    String passwordAttempt = JOptionPane.showInputDialog("This channel needs an password! Enter one");
 		    if(passwordAttempt == null)
 			return;
@@ -193,11 +189,8 @@ public class Client
     public String getAllChannels(){
 	try{
 	    objectOutputStream.writeObject(new ListOfChannelsPacket());
-	    while (data == null){
-		Thread.onSpinWait();
-	    }
-	    String allChannelString = ((ListOfChannelsPacket)data).getFormatedChannelString();
-	    data = null;
+	    ListOfChannelsPacket listOfChannelsPacket = getDataFromServer();
+	    String allChannelString = listOfChannelsPacket.getFormatedChannelString();
 	    return allChannelString;
 	}catch (IOException e){
 	    LOGGER.log(Level.SEVERE, e.toString(),e);
@@ -216,11 +209,9 @@ public class Client
     public MessagePacket[] getMessagesFromServer(int pointer, int amount) {
 	try{
 	    objectOutputStream.writeObject(new RequestOldMessagesPacket(pointer, amount));
-	    while (data == null) {
-		Thread.onSpinWait();
-	    }
-	    final MessagePacket[] returnData = ((RequestOldMessagesPacket) data).getReturnData();
-	    data = null;
+
+	    final RequestOldMessagesPacket requestOldMessagesPacket = getDataFromServer();
+	    final MessagePacket[] returnData = requestOldMessagesPacket.getReturnData();
 	    return returnData;
 	}catch (IOException e){
 	    if(isClosed) return null;
@@ -233,11 +224,8 @@ public class Client
     public List<UserDataPacket> getAllUsers(int channelId){
 	try{
 	    objectOutputStream.writeObject(new GetCurrentUsersPacket());
-	    while (data == null) {
-		Thread.onSpinWait();
-	    }
-	    final List<UserDataPacket> returnData = ((GetCurrentUsersPacket) data).getUserDataPacketList();
-	    data = null;
+	    final GetCurrentUsersPacket getCurrentUsersPacket = getDataFromServer();
+	    final List<UserDataPacket> returnData = getCurrentUsersPacket.getUserDataPacketList();
 	    return returnData;
 	}catch (IOException e){
 	    LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -246,6 +234,17 @@ public class Client
 	}
 	return null;
     }
+
+    public void kickUser(UserDataPacket user){
+	try{
+	    objectOutputStream.writeObject(new KickRequestPacket(user));
+	}catch (IOException e){
+	    LOGGER.log(Level.SEVERE, e.toString(), e);
+	    LOGGER.log(Level.INFO, "Turning of client");
+	    closeClient();
+	}
+    }
+
     /**
      * Addes a new Listener. Runs whenever a the chat gets a new message
      * @param listener The listener you want to be called
@@ -274,6 +273,16 @@ public class Client
 	    }
 	}
     }
+    @SuppressWarnings("unchecked")
+    public <T> T getDataFromServer(){
+	while (data == null) {
+	    Thread.onSpinWait();
+	}
+	T returnData = (T)data;
+	data =null;
+	return returnData;
+    }
+
 
     /**
      * Notifyes all listenrs to a new message

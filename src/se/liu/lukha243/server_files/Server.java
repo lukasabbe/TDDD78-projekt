@@ -24,7 +24,10 @@ import java.util.logging.Logger;
 public class Server
 {
     private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
-    private static final int MAIN_CHANNEL = 0;
+    /**
+     * Main channel of the chat. Its the one you log in to.
+     */
+    public static final int MAIN_CHANNEL = 0;
     private static final boolean IS_LOGGIN_ON = true;
     private ServerSocket serverSocket;
     private List<ChannelData> channels = new ArrayList<>();
@@ -35,7 +38,7 @@ public class Server
 
     private Thread serverThread = null;
 
-    private UserDataPacket serverUser = new UserDataPacket("[SERVER]");
+    private UserDataPacket serverUser = new UserDataPacket("[SERVER]",-1);
 
     /**
      * Creates the server object
@@ -88,7 +91,8 @@ public class Server
 		    UserDataPacket userInfo = (UserDataPacket) objectInputStream.readObject();
 		    int mainChannel = 0;
 		    userInfo.setCurrentChannel(mainChannel);
-		    ClientData clientData = new ClientData(client,objectOutputStream, objectInputStream, userInfo);
+		    userInfo.setId(connectedClientData.size());
+		    ClientData clientData = new ClientData(client,objectOutputStream, objectInputStream, userInfo,connectedClientData.size());
 		    connectedClientData.add(clientData);
 		    Thread clientThread = new Thread(new Receiver(clientData, server));
 		    clientThread.start();
@@ -137,7 +141,7 @@ public class Server
 	    clientData.objectOutputStream.writeObject(new UserDataPacket(clientData.userInfo));
 	    final MessagePacket
 		    serverMessage = new MessagePacket("Vällkomen till din nya chat\nID:" + newChannel + ". Andra kan joina med det ID:t",
-						    new UserDataPacket("[SERVER]"));
+						    new UserDataPacket("[SERVER]",-1));
 	    channels.get(newChannel).addMessage(serverMessage);
 	}catch (IOException e){
 	    if(!clientData.isConnectionOn) return;
@@ -188,6 +192,15 @@ public class Server
     }
     public List<ClientData> getConnectedClientData() {
 	return connectedClientData;
+    }
+
+    public ClientData getClientData(UserDataPacket userInfo){
+	for(ClientData clientData : connectedClientData){
+	    if(clientData.getId() == userInfo.getId()){
+		return clientData;
+	    }
+	}
+	return null;
     }
 }
 

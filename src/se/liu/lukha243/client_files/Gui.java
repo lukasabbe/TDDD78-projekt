@@ -3,6 +3,7 @@ package se.liu.lukha243.client_files;
 import se.liu.lukha243.both.requests.UserDataPacket;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -145,17 +146,37 @@ public class Gui implements ChatChangeListener
 
     public void openUserMenu(){
 	JPanel userMenuPane = new JPanel();
-	userMenuPane.setSize(100,200);
-	userMenuPane.setLayout(new BorderLayout());
+	final int marginCompponment = 20;
+	final int marginPanel = 20;
+	final int marginBetweenPanel = 5;
+	userMenuPane.setLayout(new BorderLayout(marginBetweenPanel,marginBetweenPanel));
+	Border paddingCompponment = BorderFactory.createEmptyBorder(marginCompponment, marginCompponment,marginCompponment,marginCompponment);
+	Border paddingPane = BorderFactory.createEmptyBorder(marginPanel, marginPanel,marginPanel,marginPanel);
+	userMenuPane.setBorder(paddingPane);
 	List<UserDataPacket> users = client.getAllUsers(client.getUserInfo().getCurrentChannel());
+	System.out.println(users);
+	boolean first = true;
+	int counter = 0;
 	for(UserDataPacket user : users){
 	    JPanel userPanel = new JPanel();
 	    userPanel.setLayout(new BorderLayout());
 	    JTextField username = new JTextField(user.getUserName());
+	    username.setEditable(false);
 	    JButton kickBtn = new JButton("kick");
+	    kickBtn.addActionListener(btn -> client.kickUser(user));
+	    username.setBorder(paddingCompponment);
+	    kickBtn.setBorder(paddingCompponment);
 	    userPanel.add(username,BorderLayout.WEST);
 	    userPanel.add(kickBtn, BorderLayout.EAST);
-	    userMenuPane.add(userPanel,BorderLayout.NORTH);
+	    if(first){
+		first = false;
+		userMenuPane.add(userPanel,BorderLayout.PAGE_START);
+	    }else if(counter == users.size()-1){
+		userMenuPane.add(userPanel,BorderLayout.PAGE_END);
+	    }else{
+		userMenuPane.add(userPanel,BorderLayout.LINE_START);
+	    }
+	    counter++;
 	}
 	Frame popUpframe = new JFrame();
 	popUpframe.add(userMenuPane);
