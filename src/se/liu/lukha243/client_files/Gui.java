@@ -1,5 +1,7 @@
 package se.liu.lukha243.client_files;
 
+import se.liu.lukha243.logg_files.MyLogger;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -10,9 +12,8 @@ import java.util.logging.Logger;
 /**
  * Its a GUI for the chat. It interacts with the client and uses its functions
  */
-public class Gui implements ChatChangeListener
+public class Gui extends MyLogger implements ChatChangeListener
 {
-    private static final Logger LOGGER = Logger.getLogger(Gui.class.getName());
     private JFrame frame = null;
     private Client client = null;
     private ChatComponent chatComponent = null;
@@ -56,12 +57,12 @@ public class Gui implements ChatChangeListener
 		client.setUserName(userName);
 		client.startClient();
 	    } catch (UnknownHostException e) {
-		LOGGER.log(Level.WARNING, e.toString(), e);
-		LOGGER.log(Level.INFO, "Can't connect to IP, Port or ip is wrong\n Trying agian");
+		logger.log(Level.WARNING, e.toString(), e);
+		logger.log(Level.INFO, "Can't connect to IP, Port or ip is wrong\n Trying agian");
 		continue;
 	    } catch (IOException e) {
-		LOGGER.log(Level.SEVERE, e.toString(), e);
-		LOGGER.log(Level.INFO, "Turning off program");
+		logger.log(Level.SEVERE, e.toString(), e);
+		logger.log(Level.INFO, "Turning off program");
 		close();
 	    }
 	    return;
@@ -95,7 +96,7 @@ public class Gui implements ChatChangeListener
 		    client.joinChannel(channelId);
 		    break;
 		}catch (NumberFormatException e){
-		    LOGGER.log(Level.WARNING, e.toString(), e);
+		    logger.log(Level.WARNING, e.toString(), e);
 		}
 	    }
 	});

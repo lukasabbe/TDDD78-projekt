@@ -8,27 +8,25 @@ import se.liu.lukha243.both.requests.JoinChannelPacket;
 import se.liu.lukha243.both.requests.MessagePacket;
 import se.liu.lukha243.both.requests.RequestOldMessagesPacket;
 import se.liu.lukha243.both.requests.UserDataPacket;
+import se.liu.lukha243.logg_files.MyLogger;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * The client class. The class that interacts with the server.
  * Its main jobb is to send messages and recive them
  */
-public class Client
+public class Client extends MyLogger
 {
-    private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
     /**
      * The deafult amount of messages sent over the socket
      */
@@ -75,8 +73,8 @@ public class Client
 	    objectOutputStream.writeObject(userInfo);
 	    notifyAllMessageListeners();
 	} catch (IOException e) {
-	    LOGGER.log(Level.SEVERE, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Turning of client socket");
+	    logger.log(Level.SEVERE, e.toString(), e);
+	    logger.log(Level.INFO, "Turning of client socket");
 	    closeClient();
 	}
     }
@@ -93,7 +91,7 @@ public class Client
 	    serverSocket.close();
 	    isClosed = true;
 	} catch (IOException e) {
-	   LOGGER.log(Level.SEVERE, e.toString(), e);
+	   logger.log(Level.SEVERE, e.toString(), e);
 	   System.exit(1); // turn of program if it fails to close down
 	}
     }
@@ -107,8 +105,8 @@ public class Client
 	    if(message.isBlank()) return;
 	    objectOutputStream.writeObject(new MessagePacket(message, userInfo));
 	} catch (IOException e) {
-	    LOGGER.log(Level.SEVERE, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Turning of client socket");
+	    logger.log(Level.SEVERE, e.toString(), e);
+	    logger.log(Level.INFO, "Turning of client socket");
 	    closeClient();
 	}
     }
@@ -127,8 +125,8 @@ public class Client
 	    notifyAllChannelListeners();
 	}catch (IOException e){
 	    if(isClosed) return;
-	    LOGGER.log(Level.SEVERE, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Turning of client");
+	    logger.log(Level.SEVERE, e.toString(), e);
+	    logger.log(Level.INFO, "Turning of client");
 	    closeClient();
 	}
     }
@@ -165,8 +163,8 @@ public class Client
 		}
 	    }
 	} catch (IOException e) {
-	    LOGGER.log(Level.SEVERE, e.toString(),e);
-	    LOGGER.log(Level.INFO, "Turning of client");
+	    logger.log(Level.SEVERE, e.toString(), e);
+	    logger.log(Level.INFO, "Turning of client");
 	    closeClient();
 	}
     }
@@ -175,8 +173,8 @@ public class Client
 	try{
 	    objectOutputStream.writeObject(new ChannelChangePacket(channelId, password, lockedMode));
 	}catch (IOException e){
-	    LOGGER.log(Level.SEVERE, e.toString(),e);
-	    LOGGER.log(Level.INFO, "Turning of client");
+	    logger.log(Level.SEVERE, e.toString(), e);
+	    logger.log(Level.INFO, "Turning of client");
 	    closeClient();
 	}
     }
@@ -198,8 +196,8 @@ public class Client
 	    return returnData;
 	}catch (IOException e){
 	    if(isClosed) return null;
-	    LOGGER.log(Level.SEVERE, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Turning of client");
+	    logger.log(Level.SEVERE, e.toString(), e);
+	    logger.log(Level.INFO, "Turning of client");
 	    closeClient();
 	}
 	return null;
@@ -227,8 +225,8 @@ public class Client
 		}
 	    } catch (IOException | ClassNotFoundException e) {
 		if(isClosed) return;
-		LOGGER.log(Level.SEVERE, e.toString(), e);
-		LOGGER.log(Level.INFO, "Turning of client");
+		logger.log(Level.SEVERE, e.toString(), e);
+		logger.log(Level.INFO, "Turning of client");
 		closeClient();
 	    }
 	}

@@ -32,8 +32,8 @@ public class MessagePacket extends Packet
 	    }
 	}catch (IOException e){
 	    if(!clientData.isConnectionOn) return;
-	    LOGGER.log(Level.WARNING, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Turning off client due to IO error");
+	    logger.log(Level.WARNING, e.toString(), e);
+	    logger.log(Level.INFO, "Turning off client due to IO error");
 	    server.disconnectClient(clientData);
 	}
     }

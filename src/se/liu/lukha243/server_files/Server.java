@@ -3,6 +3,7 @@ package se.liu.lukha243.server_files;
 import se.liu.lukha243.both.requests.JoinChannelPacket;
 import se.liu.lukha243.both.requests.MessagePacket;
 import se.liu.lukha243.both.requests.UserDataPacket;
+import se.liu.lukha243.logg_files.MyLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,9 +21,8 @@ import java.util.logging.Logger;
  * It takes cares of incoming messages and sening them to all of the users.
  * It also takes care of alot of difrent types of requests
  */
-public class Server
+public class Server extends MyLogger
 {
-    private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
     private static final int MAIN_CHANNEL = 0;
     private ServerSocket serverSocket;
     private List<ChannelData> channels = new ArrayList<>();
@@ -62,7 +62,7 @@ public class Server
 	    serverThread.interrupt();
 	    System.exit(0);
 	}catch (IOException e){
-	    LOGGER.log(Level.SEVERE, e.toString(), e);
+	    logger.log(Level.SEVERE, e.toString(), e);
 	}
     }
 
@@ -88,8 +88,8 @@ public class Server
 		    clientThread.start();
 		    clientThreads.add(clientThread);
 		} catch (IOException | ClassNotFoundException e) {
-		    LOGGER.log(Level.SEVERE, e.toString(), e);
-		    LOGGER.log(Level.INFO, "Turning off server due to error");
+		    logger.log(Level.SEVERE, e.toString(), e);
+		    logger.log(Level.INFO, "Turning off server due to error");
 		    closeServer();
 		}
 	    }
@@ -114,8 +114,8 @@ public class Server
 	    clientThreads.remove(index);
 	    System.out.println("Client disconected");
 	} catch (IOException e) {
-	    LOGGER.log(Level.WARNING, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Problems happend when disconnecting user");
+	    logger.log(Level.WARNING, e.toString(), e);
+	    logger.log(Level.INFO, "Problems happend when disconnecting user");
 	}
     }
 
@@ -135,8 +135,8 @@ public class Server
 	    channels.get(newChannel).addMessage(serverMessage);
 	}catch (IOException e){
 	    if(!clientData.isConnectionOn) return;
-	    LOGGER.log(Level.WARNING, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Disconnecting user");
+	    logger.log(Level.WARNING, e.toString(), e);
+	    logger.log(Level.INFO, "Disconnecting user");
 	    disconnectClient(clientData);
 	}
 
@@ -162,8 +162,8 @@ public class Server
 	    }
 	}catch (IOException e){
 	    if(!clientData.isConnectionOn) return;
-	    LOGGER.log(Level.WARNING, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Disconnecting user");
+	    logger.log(Level.WARNING, e.toString(), e);
+	    logger.log(Level.INFO, "Disconnecting user");
 	    disconnectClient(clientData);
 	}
     }

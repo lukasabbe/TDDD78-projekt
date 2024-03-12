@@ -12,9 +12,17 @@ import java.util.logging.SimpleFormatter;
 /**
  * A class that is used for Initializeing the logger system
  */
-public class MyLogger
+public abstract class MyLogger
 {
-    private static final Logger LOGGER = Logger.getLogger(MyLogger.class.getName());
+    /**
+     * Logger for class.
+     */
+    protected final Logger logger;
+
+    protected MyLogger(){
+	logger = Logger.getLogger(this.getClass().getName());
+    }
+
     /**
      * Initialize logger system
      */
@@ -24,7 +32,7 @@ public class MyLogger
 	    if(!logsDir.exists()){
 		boolean createdDir = logsDir.mkdirs();
 		if(!createdDir)
-		    LOGGER.log(Level.WARNING, "Can't create dirs where the logs is saved ");
+		    System.out.println("Somting went wrong in init function for logger");
 	    }
 	    FileHandler fileHandler = new FileHandler(
 		    "%h"+
@@ -39,8 +47,8 @@ public class MyLogger
 	    Logger mainLogger = Logger.getLogger("");
 	    mainLogger.addHandler(new PrintHandler());
 	    mainLogger.addHandler(fileHandler);
-	} catch (IOException e) {
-	    LOGGER.log(Level.SEVERE, e.toString(), e);
+	} catch (IOException ignore) {
+	    System.out.println("Somting went wrong in init function for logger");
 	}
     }
 

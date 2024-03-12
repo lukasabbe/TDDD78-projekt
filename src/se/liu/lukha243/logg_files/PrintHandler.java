@@ -10,7 +10,7 @@ import java.util.logging.StreamHandler;
  */
 public class PrintHandler extends StreamHandler
 {
-    @Override public void publish(final LogRecord record) {
+    @Override public synchronized void publish(final LogRecord record) {
 	if(record.getLevel().equals(Level.FINE)){
 	    System.out.println(record.getMessage());
 	}
