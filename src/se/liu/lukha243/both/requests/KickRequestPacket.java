@@ -14,10 +14,10 @@ import java.util.logging.Level;
  */
 public class KickRequestPacket extends Packet
 {
-    private UserDataPacket kicedUser = null;
+    private UserDataPacket kicedUser;
 
-    public KickRequestPacket(final UserDataPacket kicedUser) {
-	this.kicedUser = kicedUser;
+    public KickRequestPacket(final UserDataPacket kickedUser) {
+	this.kicedUser = kickedUser;
     }
 
     @Override public void runServer(final ClientData clientData, final Server server) {
@@ -26,8 +26,8 @@ public class KickRequestPacket extends Packet
 	    kickedClient.objectOutputStream.writeObject(new KickRequestPacket(kicedUser));
 
 	}catch (IOException e){
-	    LOGGER.log(Level.WARNING, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Disconnecting user");
+	    logger.log(Level.WARNING, e.toString(), e);
+	    logger.log(Level.INFO, "Disconnecting user");
 	    server.disconnectClient(clientData);
 	}
 

@@ -12,11 +12,11 @@ import java.util.logging.Level;
 /**
  * Send an request to the server to get all channels. It returns an formated string
  */
-public class ListOfChannelsPacket extends Packet
+public class ChannelPackets extends Packet
 {
     private String formatedChannelString = null;
-    public ListOfChannelsPacket(){}
-    public ListOfChannelsPacket(String formatedChannelString){
+    public ChannelPackets(){}
+    public ChannelPackets(String formatedChannelString){
 	this.formatedChannelString = formatedChannelString;
     }
     @Override public void runServer(final ClientData clientData, final Server server) {
@@ -33,11 +33,11 @@ public class ListOfChannelsPacket extends Packet
 			.append(channelData.getOwnerUser().getUserName())
 			.append("\n");
 	    }
-	    final ListOfChannelsPacket listOfChannelsPacketObj = new ListOfChannelsPacket(formatedString.toString());
-	    clientData.objectOutputStream.writeObject(listOfChannelsPacketObj);
+	    final ChannelPackets channelPackets = new ChannelPackets(formatedString.toString());
+	    clientData.objectOutputStream.writeObject(channelPackets);
 	}catch (IOException e){
-	    LOGGER.log(Level.WARNING, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Disconecting user");
+	    logger.log(Level.WARNING, e.toString(), e);
+	    logger.log(Level.INFO, "Disconecting user");
 	    server.disconnectClient(clientData);
 	}
     }

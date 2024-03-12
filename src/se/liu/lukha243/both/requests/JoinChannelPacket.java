@@ -11,7 +11,7 @@ import se.liu.lukha243.server_files.Server;
 public class JoinChannelPacket extends Packet
 {
     private int channelId;
-    private String passwordAttempt = "";
+    private String passwordAttempt = ""; // we must have this here beacus we are sending the password for the channel over the internet with this packet.
     private boolean hasJoined = true;
     public JoinChannelPacket(int channelId){
 	this.channelId = channelId;

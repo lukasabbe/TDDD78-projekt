@@ -108,7 +108,7 @@ public class ChatComponent extends JPanel
 	return sendButton;
     }
 
-    public void requestMessagePackets(){
+    public void importMessagePackets(){
 	messagePackets = client.getMessagesFromServer(pointer, Client.DEFAULT_AMOUNT_MESSAGES);
     }
 }

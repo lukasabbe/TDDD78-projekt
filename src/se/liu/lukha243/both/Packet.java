@@ -6,7 +6,6 @@ import se.liu.lukha243.server_files.ClientData;
 import se.liu.lukha243.server_files.Server;
 
 import java.io.Serializable;
-import java.util.logging.Logger;
 
 /**
  * Packet is used to extend all other packets. It has things like the packets logger.

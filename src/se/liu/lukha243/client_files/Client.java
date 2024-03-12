@@ -7,7 +7,7 @@ import se.liu.lukha243.both.requests.DisconnectPacket;
 import se.liu.lukha243.both.requests.GetCurrentUsersPacket;
 import se.liu.lukha243.both.requests.JoinChannelPacket;
 import se.liu.lukha243.both.requests.KickRequestPacket;
-import se.liu.lukha243.both.requests.ListOfChannelsPacket;
+import se.liu.lukha243.both.requests.ChannelPackets;
 import se.liu.lukha243.both.requests.MessagePacket;
 import se.liu.lukha243.both.requests.RequestOldMessagesPacket;
 import se.liu.lukha243.both.requests.UserDataPacket;
@@ -145,7 +145,7 @@ public class Client extends MyLogger
 	try {
 	    objectOutputStream.writeObject(new JoinChannelPacket(channelId));
 	    while (true){
-		final JoinChannelPacket joinChannelPacket = getDataFromServer();
+		final JoinChannelPacket joinChannelPacket = getDataFromServer(JoinChannelPacket.class);
 		if(joinChannelPacket.hasJoined()) {
 		    notifyAllMessageListeners();
 		    notifyAllChannelListeners();
@@ -186,13 +186,13 @@ public class Client extends MyLogger
      */
     public String getAllChannels(){
 	try{
-	    objectOutputStream.writeObject(new ListOfChannelsPacket());
-	    ListOfChannelsPacket listOfChannelsPacket = getDataFromServer();
-	    String allChannelString = listOfChannelsPacket.getFormatedChannelString();
+	    objectOutputStream.writeObject(new ChannelPackets());
+	    ChannelPackets channelPackets = getDataFromServer(ChannelPackets.class);
+	    String allChannelString = channelPackets.getFormatedChannelString();
 	    return allChannelString;
 	}catch (IOException e){
-	    LOGGER.log(Level.SEVERE, e.toString(),e);
-	    LOGGER.log(Level.INFO, "Turning of client");
+	    logger.log(Level.SEVERE, e.toString(),e);
+	    logger.log(Level.INFO, "Turning of client");
 	    closeClient();
 	}
 	return "";
@@ -208,7 +208,7 @@ public class Client extends MyLogger
 	try{
 	    objectOutputStream.writeObject(new RequestOldMessagesPacket(pointer, amount));
 
-	    final RequestOldMessagesPacket requestOldMessagesPacket = getDataFromServer();
+	    final RequestOldMessagesPacket requestOldMessagesPacket = getDataFromServer(RequestOldMessagesPacket.class);
 	    final MessagePacket[] returnData = requestOldMessagesPacket.getReturnData();
 	    return returnData;
 	}catch (IOException e){
@@ -219,15 +219,15 @@ public class Client extends MyLogger
 	}
 	return null;
     }
-    public List<UserDataPacket> getAllUsers(int channelId){
+    public List<UserDataPacket> getAllUsers(){
 	try{
 	    objectOutputStream.writeObject(new GetCurrentUsersPacket());
-	    final GetCurrentUsersPacket getCurrentUsersPacket = getDataFromServer();
-	    final List<UserDataPacket> returnData = getCurrentUsersPacket.getUserDataPacketList();
+	    final GetCurrentUsersPacket getCurrentUsersPacket = getDataFromServer(GetCurrentUsersPacket.class);
+	    final List<UserDataPacket> returnData = getCurrentUsersPacket.getUserDataPackets();
 	    return returnData;
 	}catch (IOException e){
-	    LOGGER.log(Level.SEVERE, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Turning of client");
+	    logger.log(Level.SEVERE, e.toString(), e);
+	    logger.log(Level.INFO, "Turning of client");
 	    closeClient();
 	}
 	return null;
@@ -237,8 +237,8 @@ public class Client extends MyLogger
 	try{
 	    objectOutputStream.writeObject(new KickRequestPacket(user));
 	}catch (IOException e){
-	    LOGGER.log(Level.SEVERE, e.toString(), e);
-	    LOGGER.log(Level.INFO, "Turning of client");
+	    logger.log(Level.SEVERE, e.toString(), e);
+	    logger.log(Level.INFO, "Turning of client");
 	    closeClient();
 	}
     }
@@ -271,13 +271,16 @@ public class Client extends MyLogger
 	    }
 	}
     }
-    @SuppressWarnings("unchecked")
-    public <T> T getDataFromServer(){
+
+    public <T> T getDataFromServer(Class<T> clazz){
 	while (data == null) {
 	    Thread.onSpinWait();
 	}
-	T returnData = (T)data;
-	data =null;
+	if(!clazz.isInstance(data)){
+	    throw new IllegalStateException("Data is not right");
+	}
+	T returnData = clazz.cast(data);
+	data = null;
 	return returnData;
     }
 

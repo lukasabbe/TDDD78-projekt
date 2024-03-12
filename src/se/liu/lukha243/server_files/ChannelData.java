@@ -17,7 +17,7 @@ public class ChannelData implements Serializable
     private List<MessagePacket> messages = new ArrayList<>();
     private String passsword = "";
     private boolean locked = false;
-    private UserDataPacket ownerUser = null;
+    private UserDataPacket ownerUser;
 
     /**
      * Creates a new channel data object

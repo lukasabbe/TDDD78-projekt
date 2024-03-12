@@ -14,7 +14,7 @@ public class UserDataPacket extends Packet
 
     private int currentChannel;
 
-    private int[] ownedChannls = null;
+    private int[] ownedChannels;
 
     private int id;
 
@@ -31,17 +31,17 @@ public class UserDataPacket extends Packet
      */
     public UserDataPacket(final String userName) {
 	this.userName = userName;
-        this.ownedChannls = new int[0];
+        this.ownedChannels = new int[0];
     }
     public UserDataPacket(final String userName, int id) {
         this.userName = userName;
-        this.ownedChannls = new int[0];
+        this.ownedChannels = new int[0];
         this.id = id;
     }
     public UserDataPacket(UserDataPacket userDataPacket){
         this.userName = userDataPacket.userName;
         this.currentChannel = userDataPacket.currentChannel;
-        this.ownedChannls = userDataPacket.ownedChannls;
+        this.ownedChannels = userDataPacket.ownedChannels;
         this.id = userDataPacket.id;
     }
 
@@ -82,17 +82,17 @@ public class UserDataPacket extends Packet
      * @param channelId the channel that gets added
      */
     public void addNewChannelOwnerShip(int channelId){
-        int[] newOwnedChannels = new int[ownedChannls.length + 1];
+        int[] newOwnedChannels = new int[ownedChannels.length + 1];
         int i = 0;
-	for(int ownedChannel : ownedChannls){
+	for(int ownedChannel : ownedChannels){
             newOwnedChannels[i] = ownedChannel;
             i++;
         }
-        newOwnedChannels[ownedChannls.length] = channelId;
-        ownedChannls = newOwnedChannels;
+        newOwnedChannels[ownedChannels.length] = channelId;
+        ownedChannels = newOwnedChannels;
     }
     public boolean isOwner(int channelId){
-        for(int ownedChannel : ownedChannls){
+        for(int ownedChannel : ownedChannels){
             if(ownedChannel == channelId) return true;
         }
         return false;

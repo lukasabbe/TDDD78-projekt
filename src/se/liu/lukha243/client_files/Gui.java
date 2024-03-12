@@ -110,29 +110,30 @@ public class Gui extends MyLogger implements ChatChangeListener
 	menuFileConnection.add(menuItemGetAllChannels);
 	menuBar.add(menuFileOptions);
 	menuBar.add(menuFileConnection);
-	if(client.getUserInfo().isOwner(client.getUserInfo().getCurrentChannel())){
+	final int currentChannel = client.getUserInfo().getCurrentChannel();
+	if(client.getUserInfo().isOwner(currentChannel)){
 	    JMenu channelOwnerMenu = new JMenu("Channel");
-	    JMenuItem setPasswordItem = new JMenuItem("Set password");
-	    setPasswordItem.addActionListener(l -> {
+	    JMenuItem passwordItem = new JMenuItem("Set password");
+	    passwordItem.addActionListener(l -> {
 		currentPassword = JOptionPane.showInputDialog("Skriv in ditt lössen");
-		client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, currentChannelLocked);
+		client.setChannelData(currentChannel, currentPassword, currentChannelLocked);
 	    });
 	    JMenuItem lockItem = new JMenuItem("lock channel");
 	    lockItem.addActionListener(l -> {
 		currentChannelLocked = true;
-		client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, true);
+		client.setChannelData(currentChannel, currentPassword, true);
 	    });
 	    JMenuItem unlockItem = new JMenuItem("unlock channel");
 	    unlockItem.addActionListener(l -> {
 		currentChannelLocked = false;
-		client.setChannelData(client.getUserInfo().getCurrentChannel(),currentPassword, false);
+		client.setChannelData(currentChannel, currentPassword, false);
 	    });
 
 	    JMenuItem menuItemShowAllUsers = new JMenuItem("all users");
 
 	    menuItemShowAllUsers.addActionListener(ignore ->openUserMenu());
 
-	    channelOwnerMenu.add(setPasswordItem);
+	    channelOwnerMenu.add(passwordItem);
 	    channelOwnerMenu.add(lockItem);
 	    channelOwnerMenu.add(unlockItem);
 	    channelOwnerMenu.add(menuItemShowAllUsers);
@@ -144,14 +145,14 @@ public class Gui extends MyLogger implements ChatChangeListener
 
     public void openUserMenu(){
 	JPanel userMenuPane = new JPanel();
-	final int marginCompponment = 20;
+	final int marginComponent = 20;
 	final int marginPanel = 20;
 	final int marginBetweenPanel = 5;
 	userMenuPane.setLayout(new BorderLayout(marginBetweenPanel,marginBetweenPanel));
-	Border paddingCompponment = BorderFactory.createEmptyBorder(marginCompponment, marginCompponment,marginCompponment,marginCompponment);
+	Border paddingCompponment = BorderFactory.createEmptyBorder(marginComponent, marginComponent,marginComponent,marginComponent);
 	Border paddingPane = BorderFactory.createEmptyBorder(marginPanel, marginPanel,marginPanel,marginPanel);
 	userMenuPane.setBorder(paddingPane);
-	List<UserDataPacket> users = client.getAllUsers(client.getUserInfo().getCurrentChannel());
+	List<UserDataPacket> users = client.getAllUsers();
 	System.out.println(users);
 	boolean first = true;
 	int counter = 0;
@@ -160,12 +161,12 @@ public class Gui extends MyLogger implements ChatChangeListener
 	    userPanel.setLayout(new BorderLayout());
 	    JTextField username = new JTextField(user.getUserName());
 	    username.setEditable(false);
-	    JButton kickBtn = new JButton("kick");
-	    kickBtn.addActionListener(btn -> client.kickUser(user));
+	    JButton kickButton = new JButton("kick");
+	    kickButton.addActionListener(action -> client.kickUser(user));
 	    username.setBorder(paddingCompponment);
-	    kickBtn.setBorder(paddingCompponment);
+	    kickButton.setBorder(paddingCompponment);
 	    userPanel.add(username,BorderLayout.WEST);
-	    userPanel.add(kickBtn, BorderLayout.EAST);
+	    userPanel.add(kickButton, BorderLayout.EAST);
 	    if(first){
 		first = false;
 		userMenuPane.add(userPanel,BorderLayout.PAGE_START);
@@ -176,14 +177,14 @@ public class Gui extends MyLogger implements ChatChangeListener
 	    }
 	    counter++;
 	}
-	Frame popUpframe = new JFrame();
-	popUpframe.add(userMenuPane);
-	popUpframe.pack();
-	popUpframe.setVisible(true);
+	Frame popUpFrame = new JFrame();
+	popUpFrame.add(userMenuPane);
+	popUpFrame.pack();
+	popUpFrame.setVisible(true);
     }
 
     @Override public void chatChange() {
-	chatComponent.requestMessagePackets();
+	chatComponent.importMessagePackets();
 	chatComponent.repaint();
     }
 

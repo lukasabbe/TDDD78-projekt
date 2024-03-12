@@ -23,7 +23,6 @@ import java.util.logging.Logger;
  */
 public class Server extends MyLogger
 {
-    private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
     /**
      * Main channel of the chat. Its the one you log in to.
      */
