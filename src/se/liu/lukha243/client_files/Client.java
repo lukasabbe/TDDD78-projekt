@@ -4,7 +4,10 @@ import se.liu.lukha243.both.Packet;
 import se.liu.lukha243.both.requests.ChannelChangePacket;
 import se.liu.lukha243.both.requests.CreateNewChannelPacket;
 import se.liu.lukha243.both.requests.DisconnectPacket;
+import se.liu.lukha243.both.requests.GetCurrentUsersPacket;
 import se.liu.lukha243.both.requests.JoinChannelPacket;
+import se.liu.lukha243.both.requests.KickRequestPacket;
+import se.liu.lukha243.both.requests.ListOfChannelsPacket;
 import se.liu.lukha243.both.requests.MessagePacket;
 import se.liu.lukha243.both.requests.RequestOldMessagesPacket;
 import se.liu.lukha243.both.requests.UserDataPacket;
@@ -31,6 +34,7 @@ public class Client extends MyLogger
      * The deafult amount of messages sent over the socket
      */
     public static final int DEFAULT_AMOUNT_MESSAGES = 20;
+    private static final boolean IS_LOGGIN_ON = true;
     private Socket serverSocket;
     private volatile UserDataPacket userInfo;
     private ObjectOutputStream objectOutputStream;
@@ -47,6 +51,8 @@ public class Client extends MyLogger
      * @throws UnknownHostException
      */
     public Client(String ip, int port) throws IOException, UnknownHostException {
+	if(IS_LOGGIN_ON)
+		MyLogger.initLogger();
 	serverSocket = new Socket(ip, port);
 	OutputStream outputStream = serverSocket.getOutputStream();
 	objectOutputStream = new ObjectOutputStream(outputStream);
@@ -118,7 +124,7 @@ public class Client extends MyLogger
 	try{
 	    userInfo = null;
 	    objectOutputStream.writeObject(new CreateNewChannelPacket());
-	    while (userInfo == null) {
+	    while (userInfo == null){
 		Thread.onSpinWait();
 	    }
 	    notifyAllMessageListeners();
@@ -139,23 +145,12 @@ public class Client extends MyLogger
 	try {
 	    objectOutputStream.writeObject(new JoinChannelPacket(channelId));
 	    while (true){
-		System.out.println("6");
-		while (data == null) {
-		    Thread.onSpinWait();
-		}
-		final JoinChannelPacket joinChannelPacket = (JoinChannelPacket) data;
-		System.out.println("5");
+		final JoinChannelPacket joinChannelPacket = getDataFromServer();
 		if(joinChannelPacket.hasJoined()) {
-		    System.out.println("1");
-		    data = null;
-		    System.out.println("2");
 		    notifyAllMessageListeners();
-		    System.out.println("3");
 		    notifyAllChannelListeners();
-		    System.out.println("4");
 		    break;
 		}else{
-		    data = null;
 		    String passwordAttempt = JOptionPane.showInputDialog("This channel needs an password! Enter one");
 		    if(passwordAttempt == null)
 			return;
@@ -169,6 +164,12 @@ public class Client extends MyLogger
 	}
     }
 
+    /**
+     * Set data for an channel.
+     * @param channelId the channel id you want to set to
+     * @param password password you want to set
+     * @param lockedMode if you want the channel to be locked
+     */
     public void setChannelData(int channelId, String password, boolean lockedMode){
 	try{
 	    objectOutputStream.writeObject(new ChannelChangePacket(channelId, password, lockedMode));
@@ -180,6 +181,24 @@ public class Client extends MyLogger
     }
 
     /**
+     * Get all channels in a string formated style
+     * @return
+     */
+    public String getAllChannels(){
+	try{
+	    objectOutputStream.writeObject(new ListOfChannelsPacket());
+	    ListOfChannelsPacket listOfChannelsPacket = getDataFromServer();
+	    String allChannelString = listOfChannelsPacket.getFormatedChannelString();
+	    return allChannelString;
+	}catch (IOException e){
+	    LOGGER.log(Level.SEVERE, e.toString(),e);
+	    LOGGER.log(Level.INFO, "Turning of client");
+	    closeClient();
+	}
+	return "";
+    }
+
+    /**
      * Gets the channels messages.
      * @param pointer from where to look in all messages
      * @param amount the amount to load
@@ -188,11 +207,9 @@ public class Client extends MyLogger
     public MessagePacket[] getMessagesFromServer(int pointer, int amount) {
 	try{
 	    objectOutputStream.writeObject(new RequestOldMessagesPacket(pointer, amount));
-	    while (data == null) {
-		Thread.onSpinWait();
-	    }
-	    final MessagePacket[] returnData = ((RequestOldMessagesPacket) data).getReturnData();
-	    data = null;
+
+	    final RequestOldMessagesPacket requestOldMessagesPacket = getDataFromServer();
+	    final MessagePacket[] returnData = requestOldMessagesPacket.getReturnData();
 	    return returnData;
 	}catch (IOException e){
 	    if(isClosed) return null;
@@ -201,6 +218,29 @@ public class Client extends MyLogger
 	    closeClient();
 	}
 	return null;
+    }
+    public List<UserDataPacket> getAllUsers(int channelId){
+	try{
+	    objectOutputStream.writeObject(new GetCurrentUsersPacket());
+	    final GetCurrentUsersPacket getCurrentUsersPacket = getDataFromServer();
+	    final List<UserDataPacket> returnData = getCurrentUsersPacket.getUserDataPacketList();
+	    return returnData;
+	}catch (IOException e){
+	    LOGGER.log(Level.SEVERE, e.toString(), e);
+	    LOGGER.log(Level.INFO, "Turning of client");
+	    closeClient();
+	}
+	return null;
+    }
+
+    public void kickUser(UserDataPacket user){
+	try{
+	    objectOutputStream.writeObject(new KickRequestPacket(user));
+	}catch (IOException e){
+	    LOGGER.log(Level.SEVERE, e.toString(), e);
+	    LOGGER.log(Level.INFO, "Turning of client");
+	    closeClient();
+	}
     }
 
     /**
@@ -231,6 +271,16 @@ public class Client extends MyLogger
 	    }
 	}
     }
+    @SuppressWarnings("unchecked")
+    public <T> T getDataFromServer(){
+	while (data == null) {
+	    Thread.onSpinWait();
+	}
+	T returnData = (T)data;
+	data =null;
+	return returnData;
+    }
+
 
     /**
      * Notifyes all listenrs to a new message

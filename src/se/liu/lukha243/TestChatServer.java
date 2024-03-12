@@ -1,6 +1,5 @@
 package se.liu.lukha243;
 
-import se.liu.lukha243.logg_files.MyLogger;
 import se.liu.lukha243.server_files.Server;
 
 import java.io.IOException;
@@ -15,7 +14,6 @@ public class TestChatServer
 {
     private static final Logger LOGGER = Logger.getLogger(TestChatServer.class.getName());
     public static void main(String[] args) {
-	MyLogger.initLogger();
 	try {
 	    Server server = new Server(5000);
 	    server.startServer();

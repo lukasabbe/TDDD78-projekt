@@ -31,6 +31,7 @@ public class ClientData
      * Is connection on or off
      */
     public boolean isConnectionOn;
+    private int id;
 
     /**
      * Creates client data for the server
@@ -39,12 +40,17 @@ public class ClientData
      * @param objectInputStream Input stream from the client
      * @param userInfo Client data for the user
      */
-    public ClientData(final Socket socket, final ObjectOutputStream objectOutputStream, final ObjectInputStream objectInputStream, final UserDataPacket userInfo)
+    public ClientData(final Socket socket, final ObjectOutputStream objectOutputStream, final ObjectInputStream objectInputStream, final UserDataPacket userInfo,final int id)
     {
 	this.socket = socket;
 	this.objectOutputStream = objectOutputStream;
 	this.objectInputStream = objectInputStream;
 	this.userInfo = userInfo;
 	this.isConnectionOn = true;
+	this.id = id;
+    }
+
+    public int getId() {
+	return id;
     }
 }

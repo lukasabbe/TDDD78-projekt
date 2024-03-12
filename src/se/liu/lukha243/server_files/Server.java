@@ -23,7 +23,13 @@ import java.util.logging.Logger;
  */
 public class Server extends MyLogger
 {
-    private static final int MAIN_CHANNEL = 0;
+    private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
+    /**
+     * Main channel of the chat. Its the one you log in to.
+     */
+    public static final int MAIN_CHANNEL = 0;
+    private static final boolean IS_LOGGIN_ON = true;
+
     private ServerSocket serverSocket;
     private List<ChannelData> channels = new ArrayList<>();
     private int currentChannelId = 0;
@@ -33,11 +39,15 @@ public class Server extends MyLogger
 
     private Thread serverThread = null;
 
+    private UserDataPacket serverUser = new UserDataPacket("[SERVER]",-1);
+
     /**
      * Creates the server object
      * @param port the port you want the server to run on
      */
     public Server (int port) throws IOException{
+	if(IS_LOGGIN_ON)
+	    MyLogger.initLogger();
 	this.serverSocket = new ServerSocket(port);
     }
 
@@ -46,7 +56,7 @@ public class Server extends MyLogger
      */
     public void startServer(){
 	Runtime.getRuntime().addShutdownHook(new Thread(this::closeServer));
-	channels.add(new ChannelData(createChannelId()));
+	channels.add(new ChannelData(createChannelId(),serverUser));
 	serverThread = new Thread(new Connector(this));
 	serverThread.start();
 	System.out.println("Server truned on!");
@@ -82,7 +92,8 @@ public class Server extends MyLogger
 		    UserDataPacket userInfo = (UserDataPacket) objectInputStream.readObject();
 		    int mainChannel = 0;
 		    userInfo.setCurrentChannel(mainChannel);
-		    ClientData clientData = new ClientData(client,objectOutputStream, objectInputStream, userInfo);
+		    userInfo.setId(connectedClientData.size());
+		    ClientData clientData = new ClientData(client,objectOutputStream, objectInputStream, userInfo,connectedClientData.size());
 		    connectedClientData.add(clientData);
 		    Thread clientThread = new Thread(new Receiver(clientData, server));
 		    clientThread.start();
@@ -124,14 +135,14 @@ public class Server extends MyLogger
 	    int newChannel = createChannelId();
 	    clientData.userInfo.setCurrentChannel(newChannel);
 	    clientData.userInfo.addNewChannelOwnerShip(newChannel);
-	    final ChannelData channelData = new ChannelData(newChannel);
+	    final ChannelData channelData = new ChannelData(newChannel,clientData.userInfo);
 	    channelData.setLocked(false);
 	    channels.add(channelData);
 	    System.out.println(clientData.userInfo.isOwner(newChannel));
 	    clientData.objectOutputStream.writeObject(new UserDataPacket(clientData.userInfo));
 	    final MessagePacket
 		    serverMessage = new MessagePacket("Vällkomen till din nya chat\nID:" + newChannel + ". Andra kan joina med det ID:t",
-						    new UserDataPacket("[SERVER]"));
+						    new UserDataPacket("[SERVER]",-1));
 	    channels.get(newChannel).addMessage(serverMessage);
 	}catch (IOException e){
 	    if(!clientData.isConnectionOn) return;
@@ -148,7 +159,8 @@ public class Server extends MyLogger
 		channelId = MAIN_CHANNEL;
 	    final ChannelData channelData = channels.get(channelId);
 	    if(channelData.isLocked()){
-		if(!channelData.getPasssword().equals(password))
+		System.out.println(clientData.userInfo.isOwner(channelId));
+		if(!channelData.getPasssword().equals(password) && !clientData.userInfo.isOwner(channelId))
 		    clientData.objectOutputStream.writeObject(new JoinChannelPacket(channelId,false));
 		else{
 		    clientData.userInfo.setCurrentChannel(channelId);
@@ -181,6 +193,15 @@ public class Server extends MyLogger
     }
     public List<ClientData> getConnectedClientData() {
 	return connectedClientData;
+    }
+
+    public ClientData getClientData(UserDataPacket userInfo){
+	for(ClientData clientData : connectedClientData){
+	    if(clientData.getId() == userInfo.getId()){
+		return clientData;
+	    }
+	}
+	return null;
     }
 }
 
