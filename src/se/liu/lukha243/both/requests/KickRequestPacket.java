@@ -14,16 +14,16 @@ import java.util.logging.Level;
  */
 public class KickRequestPacket extends Packet
 {
-    private UserDataPacket kicedUser;
+    private UserDataPacket KickedUser;
 
     public KickRequestPacket(final UserDataPacket kickedUser) {
-	this.kicedUser = kickedUser;
+	this.KickedUser = kickedUser;
     }
 
     @Override public void runServer(final ClientData clientData, final Server server) {
 	try {
-	    ClientData kickedClient = server.getClientData(kicedUser);
-	    kickedClient.objectOutputStream.writeObject(new KickRequestPacket(kicedUser));
+	    ClientData kickedClient = server.getClientData(KickedUser);
+	    kickedClient.objectOutputStream.writeObject(new KickRequestPacket(KickedUser));
 
 	}catch (IOException e){
 	    logger.log(Level.WARNING, e.toString(), e);

@@ -32,7 +32,7 @@ public abstract class MyLogger
 	    if(!logsDir.exists()){
 		boolean createdDir = logsDir.mkdirs();
 		if(!createdDir)
-		    Logger.getLogger(MyLogger.class.getName()).log(Level.SEVERE, "Somting went wrong in init function for logger");
+		    printErrorLog();
 	    }
 	    FileHandler fileHandler = new FileHandler(
 		    "%h"+
@@ -48,8 +48,12 @@ public abstract class MyLogger
 	    mainLogger.addHandler(new PrintHandler());
 	    mainLogger.addHandler(fileHandler);
 	} catch (IOException ignore) {
-	    Logger.getLogger(MyLogger.class.getName()).log(Level.SEVERE, "Somting went wrong in init function for logger");
+	    printErrorLog();
 	}
+    }
+
+    private static void printErrorLog() {
+	Logger.getLogger(MyLogger.class.getName()).log(Level.SEVERE, "Somting went wrong in init function for logger");
     }
 
 }

@@ -149,7 +149,7 @@ public class Gui extends MyLogger implements ChatChangeListener
 	final int marginPanel = 20;
 	final int marginBetweenPanel = 5;
 	userMenuPane.setLayout(new BorderLayout(marginBetweenPanel,marginBetweenPanel));
-	Border paddingCompponment = BorderFactory.createEmptyBorder(marginComponent, marginComponent,marginComponent,marginComponent);
+	Border paddingComponent = BorderFactory.createEmptyBorder(marginComponent, marginComponent,marginComponent,marginComponent);
 	Border paddingPane = BorderFactory.createEmptyBorder(marginPanel, marginPanel,marginPanel,marginPanel);
 	userMenuPane.setBorder(paddingPane);
 	List<UserDataPacket> users = client.getAllUsers();
@@ -163,8 +163,8 @@ public class Gui extends MyLogger implements ChatChangeListener
 	    username.setEditable(false);
 	    JButton kickButton = new JButton("kick");
 	    kickButton.addActionListener(action -> client.kickUser(user));
-	    username.setBorder(paddingCompponment);
-	    kickButton.setBorder(paddingCompponment);
+	    username.setBorder(paddingComponent);
+	    kickButton.setBorder(paddingComponent);
 	    userPanel.add(username,BorderLayout.WEST);
 	    userPanel.add(kickButton, BorderLayout.EAST);
 	    if(first){
