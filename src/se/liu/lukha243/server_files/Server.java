@@ -1,7 +1,9 @@
 package se.liu.lukha243.server_files;
 
+import se.liu.lukha243.both.ChatSocket;
 import se.liu.lukha243.both.requests.JoinChannelPacket;
 import se.liu.lukha243.both.requests.MessagePacket;
+import se.liu.lukha243.both.Receiver;
 import se.liu.lukha243.both.requests.UserDataPacket;
 import se.liu.lukha243.logg_files.MyLogger;
 
@@ -17,17 +19,11 @@ import java.util.logging.Level;
 
 /**
  * Create a server for the chat serivice.
- * It takes cares of incoming messages and sening them to all of the users.
+ * It takes cares of incoming messages and sending them to all of the users.
  * It also takes care of alot of difrent types of requests
  */
-public class Server extends MyLogger
+public class Server extends ChatSocket
 {
-    /**
-     * Main channel of the chat. Its the one you log in to.
-     */
-    public static final int MAIN_CHANNEL = 0;
-    private static final boolean IS_LOGGIN_ON = true;
-
     private ServerSocket serverSocket;
     private List<ChannelData> channels = new ArrayList<>();
     private int currentChannelId = 0;
@@ -53,17 +49,20 @@ public class Server extends MyLogger
      * Starts the server
      */
     public void startServer(){
-	Runtime.getRuntime().addShutdownHook(new Thread(this::closeServer));
+	Runtime.getRuntime().addShutdownHook(new Thread(this::closeChatSocket));
 	channels.add(new ChannelData(createChannelId(),serverUser));
 	serverThread = new Thread(new Connector(this));
 	serverThread.start();
 	System.out.println("Server truned on!");
     }
 
+    @Override public boolean isServer() {
+	return true;
+    }
     /**
      * Turn of the server and all its threeds
      */
-    public void closeServer(){
+    @Override public void closeChatSocket() {
 	try{
 	    serverSocket.close();
 	    clientThreads.forEach(Thread::interrupt);
@@ -99,7 +98,7 @@ public class Server extends MyLogger
 		} catch (IOException | ClassNotFoundException e) {
 		    logger.log(Level.SEVERE, e.toString(), e);
 		    logger.log(Level.INFO, "Turning off server due to error");
-		    closeServer();
+		    closeChatSocket();
 		}
 	    }
 	}

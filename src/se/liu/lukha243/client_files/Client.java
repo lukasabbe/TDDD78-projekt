@@ -1,6 +1,6 @@
 package se.liu.lukha243.client_files;
 
-import se.liu.lukha243.both.Packet;
+import se.liu.lukha243.both.ChatSocket;
 import se.liu.lukha243.both.requests.ChannelChangePacket;
 import se.liu.lukha243.both.requests.CreateNewChannelPacket;
 import se.liu.lukha243.both.requests.DisconnectPacket;
@@ -12,6 +12,7 @@ import se.liu.lukha243.both.requests.MessagePacket;
 import se.liu.lukha243.both.requests.RequestOldMessagesPacket;
 import se.liu.lukha243.both.requests.UserDataPacket;
 import se.liu.lukha243.logg_files.MyLogger;
+import se.liu.lukha243.both.Receiver;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -28,17 +29,15 @@ import java.util.logging.Level;
  * The client class. The class that interacts with the server.
  * Its main jobb is to send messages and recive them
  */
-public class Client extends MyLogger
+public class Client extends ChatSocket
 {
-    /**
-     * The deafult amount of messages sent over the socket
-     */
-    public static final int DEFAULT_AMOUNT_MESSAGES = 20;
-    private static final boolean IS_LOGGIN_ON = true;
     private Socket serverSocket;
     private volatile UserDataPacket userInfo;
     private ObjectOutputStream objectOutputStream;
-    private ObjectInputStream objectInputStream;
+    /**
+     * For outgoing packets. Used bye reciver
+     */
+    public ObjectInputStream objectInputStream;
     private List<ChatChangeListener> listeners = new ArrayList<>();
     private boolean isClosed;
     private volatile Object data = null;
@@ -81,26 +80,10 @@ public class Client extends MyLogger
 	} catch (IOException e) {
 	    logger.log(Level.SEVERE, e.toString(), e);
 	    logger.log(Level.INFO, "Turning of client socket");
-	    closeClient();
+	    closeChatSocket();
 	}
     }
 
-    /**
-     * Close the client and all sockets.
-     * If you close your socket is not usebel and shoud not be used
-     */
-    public void closeClient(){
-	try {
-	    objectOutputStream.writeObject(new DisconnectPacket());
-	    objectInputStream.close();
-	    objectOutputStream.close();
-	    serverSocket.close();
-	    isClosed = true;
-	} catch (IOException e) {
-	   logger.log(Level.SEVERE, e.toString(), e);
-	   System.exit(1); // turn of program if it fails to close down
-	}
-    }
 
     /**
      * Sends a messages to the server.
@@ -113,7 +96,7 @@ public class Client extends MyLogger
 	} catch (IOException e) {
 	    logger.log(Level.SEVERE, e.toString(), e);
 	    logger.log(Level.INFO, "Turning of client socket");
-	    closeClient();
+	    closeChatSocket();
 	}
     }
 
@@ -133,7 +116,7 @@ public class Client extends MyLogger
 	    if(isClosed) return;
 	    logger.log(Level.SEVERE, e.toString(), e);
 	    logger.log(Level.INFO, "Turning of client");
-	    closeClient();
+	    closeChatSocket();
 	}
     }
 
@@ -160,7 +143,7 @@ public class Client extends MyLogger
 	} catch (IOException e) {
 	    logger.log(Level.SEVERE, e.toString(), e);
 	    logger.log(Level.INFO, "Turning of client");
-	    closeClient();
+	    closeChatSocket();
 	}
     }
 
@@ -176,7 +159,7 @@ public class Client extends MyLogger
 	}catch (IOException e){
 	    logger.log(Level.SEVERE, e.toString(), e);
 	    logger.log(Level.INFO, "Turning of client");
-	    closeClient();
+	    closeChatSocket();
 	}
     }
 
@@ -193,7 +176,7 @@ public class Client extends MyLogger
 	}catch (IOException e){
 	    logger.log(Level.SEVERE, e.toString(),e);
 	    logger.log(Level.INFO, "Turning of client");
-	    closeClient();
+	    closeChatSocket();
 	}
 	return "";
     }
@@ -215,7 +198,7 @@ public class Client extends MyLogger
 	    if(isClosed) return null;
 	    logger.log(Level.SEVERE, e.toString(), e);
 	    logger.log(Level.INFO, "Turning of client");
-	    closeClient();
+	    closeChatSocket();
 	}
 	return null;
     }
@@ -228,7 +211,7 @@ public class Client extends MyLogger
 	}catch (IOException e){
 	    logger.log(Level.SEVERE, e.toString(), e);
 	    logger.log(Level.INFO, "Turning of client");
-	    closeClient();
+	    closeChatSocket();
 	}
 	return null;
     }
@@ -239,7 +222,7 @@ public class Client extends MyLogger
 	}catch (IOException e){
 	    logger.log(Level.SEVERE, e.toString(), e);
 	    logger.log(Level.INFO, "Turning of client");
-	    closeClient();
+	    closeChatSocket();
 	}
     }
 
@@ -249,27 +232,6 @@ public class Client extends MyLogger
      */
     public void addChatChangeListener(ChatChangeListener listener){
 	listeners.add(listener);
-    }
-
-    private class Receiver implements Runnable
-    {
-	private Client client;
-	private Receiver(Client client){
-	    this.client = client;
-	}
-	@Override public void run() {
-	    try {
-		while (true){
-		    final Packet packet = (Packet) objectInputStream.readObject();
-		    packet.runClient(client);
-		}
-	    } catch (IOException | ClassNotFoundException e) {
-		if(isClosed) return;
-		logger.log(Level.SEVERE, e.toString(), e);
-		logger.log(Level.INFO, "Turning of client");
-		closeClient();
-	    }
-	}
     }
 
     public <T> T getDataFromServer(Class<T> clazz){
@@ -320,6 +282,31 @@ public class Client extends MyLogger
      */
     public UserDataPacket getUserInfo() {
 	return userInfo;
+    }
+
+    public boolean getIsClosed() {
+	return isClosed;
+    }
+
+    @Override public boolean isServer() {
+	return false;
+    }
+
+    /**
+     * Close the client and all sockets.
+     * If you close your socket is not usebel and shoud not be used
+     */
+    @Override public void closeChatSocket() {
+	try {
+	    objectOutputStream.writeObject(new DisconnectPacket());
+	    objectInputStream.close();
+	    objectOutputStream.close();
+	    serverSocket.close();
+	    isClosed = true;
+	} catch (IOException e) {
+	    logger.log(Level.SEVERE, e.toString(), e);
+	    System.exit(1); // turn of program if it fails to close down
+	}
     }
 }
 

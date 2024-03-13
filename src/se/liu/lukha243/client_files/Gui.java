@@ -5,6 +5,8 @@ import se.liu.lukha243.both.requests.UserDataPacket;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -33,6 +35,13 @@ public class Gui extends MyLogger implements ChatChangeListener
 	final int aHalf = 2;
 	frame.setSize((int)(screenSize.getWidth() / aQuarter), ((int)screenSize.getHeight() / aHalf));
 
+	frame.addWindowListener(new WindowAdapter()
+	{
+	    @Override public void windowClosing(final WindowEvent e) {
+		close();
+	    }
+	});
+
 	connectToServer();
 	chatComponent = new ChatComponent(client);
 	frame.getRootPane().setDefaultButton(chatComponent.getSendButton());
@@ -46,7 +55,7 @@ public class Gui extends MyLogger implements ChatChangeListener
     }
     private void close(){
 	frame.dispose();
-	client.closeClient();
+	client.closeChatSocket();
 	System.exit(0);
     }
     private void connectToServer() {
@@ -71,7 +80,7 @@ public class Gui extends MyLogger implements ChatChangeListener
     }
 
     public void reconnect(){
-	client.closeClient();
+	client.closeChatSocket();
 	client = null;
 	frame.dispose();
 	open();

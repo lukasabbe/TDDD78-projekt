@@ -6,15 +6,13 @@ import se.liu.lukha243.server_files.ClientData;
 import se.liu.lukha243.server_files.Server;
 
 import java.io.Serializable;
+import java.util.logging.Level;
 
 /**
  * Packet is used to extend all other packets. It has things like the packets logger.
  */
 public abstract class Packet extends MyLogger implements Serializable
 {
-    /**
-     * The shared logger for all packets
-     */
     public abstract void runServer(ClientData clientData, Server server);
     public abstract void runClient(Client client);
 }
